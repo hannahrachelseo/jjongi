@@ -13,27 +13,55 @@
   <meta name="apple-mobile-web-app-title" content="대신봐쫑">
   <style>
     html, body { margin: 0; height: 100%; background: #fff8ee; }
-    iframe { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; }
-    #splash { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
-              background: #fff8ee; font-family: -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
-              color: #a0703c; font-weight: 800; z-index: 2; transition: opacity .4s; }
+    body { font-family: -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; color: #2b2118; }
+    iframe { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; display: none; }
+    #splash { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center;
+              background: #fff8ee; color: #a0703c; font-weight: 800; z-index: 2; transition: opacity .4s; }
     #direct { margin-top: 6px; font-size: 14px; color: #1a73e8; }
-    #splash img { width: 120px; border-radius: 50%; animation: bob 1.2s ease-in-out infinite; }
+    .bob { animation: bob 1.2s ease-in-out infinite; }
     @keyframes bob { 0%,100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-8px) rotate(4deg); } }
+
+    /* 설치 안내 화면 */
+    #landing { display: none; min-height: 100%; box-sizing: border-box; padding: 40px 22px; text-align: center; }
+    #landing img { width: 132px; border-radius: 50%; box-shadow: 0 6px 18px rgba(255,122,47,.35); }
+    h1 { font-size: 26px; margin: 16px 0 4px; letter-spacing: -0.5px; }
+    .sub { color: #a0703c; font-weight: 700; margin: 0 0 22px; line-height: 1.5; }
+    .btn { display: block; width: 100%; max-width: 360px; margin: 10px auto; padding: 16px; border: 0; border-radius: 16px;
+           font-size: 18px; font-weight: 800; cursor: pointer; text-decoration: none; box-sizing: border-box; }
+    .main { background: #ff7a2f; color: #fff; box-shadow: 0 4px 0 #d95a14; }
+    .main:disabled { background: #c9bfb5; box-shadow: none; }
+    .ghost { background: #fff; color: #7a6552; border: 1.5px solid #e3d5c3; font-size: 15px; }
+    .how { max-width: 360px; margin: 18px auto 0; background: #fff; border-radius: 16px; padding: 14px 16px; text-align: left;
+           font-size: 14px; line-height: 1.7; box-shadow: 0 2px 6px rgba(80,50,20,.08); }
+    .how b { color: #ff7a2f; }
+    #msg { margin-top: 12px; font-weight: 800; color: #1f8a52; min-height: 22px; }
   </style>
 </head>
 <body>
+  <!-- 크롬에서 열었을 때: 설치 안내 -->
+  <div id="landing">
+    <img src="icon-512.png" alt="쫑이" class="bob">
+    <h1>대신봐쫑</h1>
+    <p class="sub">유튜브 링크만 던지면<br>쫑이가 대신 보고 결론만 PDF로 물어다 줌 🦴</p>
+    <button class="btn main" id="install">📲 앱으로 설치하기</button>
+    <div class="how" id="how"></div>
+    <div id="msg"></div>
+    <button class="btn ghost" id="useWeb">설치 없이 바로 쓰기</button>
+  </div>
+
+  <!-- 앱으로 열었을 때: 쫑이 화면 -->
   <div id="splash">
-    <img src="icon-192.png" alt="">
+    <img src="icon-192.png" alt="" class="bob" style="width:120px;border-radius:50%">
     <p>쫑이 깨우는 중… 🐾</p>
     <a id="direct" href="#" style="display:none">안 열리면 여기를 눌러 주세요</a>
   </div>
   <iframe id="app" title="대신봐쫑" allow="clipboard-read; clipboard-write"></iframe>
+
   <script>
     // ▼▼ 한나T 웹앱 주소 (바뀌면 여기만 고치면 됨) ▼▼
-           const APP_URL = 'https://script.google.com/macros/s/AKfycbzxy92Yeh0O61b3oFB_hI7eAwKnNbnvTQLsG4jnXq00xiTwgSPeEFOFZl8aXn9mk8t2Gg/exec';
+    const APP_URL = 'https://script.google.com/macros/s/AKfycbzxy92Yeh0O61b3oFB_hI7eAwKnNbnvTQLsG4jnXq00xiTwgSPeEFOFZl8aXn9mk8t2Gg/exec';
 
-    // 유튜브 앱에서 '공유 → 쫑이' 로 들어오면 링크에서 영상 ID를 꺼내 넘겨줌
+    const $ = id => document.getElementById(id);
     function videoId(s) {
       const m = String(s || '').match(/(?:[?&]v=|youtu\.be\/|\/shorts\/|\/live\/|\/embed\/)([A-Za-z0-9_-]{11})/);
       return m ? m[1] : '';
@@ -42,33 +70,79 @@
     const id = videoId(q.get('url')) || videoId(q.get('text')) || videoId(q.get('title'));
     const target = APP_URL + (id ? '?v=' + id : '');
 
-    // 앱 안에 띄워 보기 → 쫑이 페이지가 '잘 떴다' 신호를 보내면 성공
-    // 신호가 없으면(구글이 막은 경우) 쫑이 페이지를 직접 열기
-    // 이 휴대폰에서 예전에 막혔으면 기다리지 않고 바로 열기
-    let blockedBefore = false;
-    try { blockedBefore = localStorage.getItem('jjongi_direct') === '1'; } catch (e) {}
-    if (blockedBefore) location.replace(target);
-
-    let ready = false;
-    const goDirect = () => {
-      if (ready) return;
-      try { localStorage.setItem('jjongi_direct', '1'); } catch (e) {}
-      location.replace(target);
-    };
-    window.addEventListener('message', e => {
-      if (e.data && e.data.jjongi === 'ready') {
-        ready = true;
-        try { localStorage.removeItem('jjongi_direct'); } catch (e2) {}
-        const sp = document.getElementById('splash');
-        if (sp) { sp.style.opacity = '0'; setTimeout(() => sp.remove(), 400); }
-      }
-    });
-    document.getElementById('app').src = target;
-    document.getElementById('direct').href = target;
-    setTimeout(() => { if (!ready) document.getElementById('direct').style.display = 'block'; }, 4000);
-    setTimeout(goDirect, 8000);
+    const isApp = window.matchMedia('(display-mode: standalone)').matches ||
+                  window.matchMedia('(display-mode: fullscreen)').matches || window.navigator.standalone === true;
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const isAndroid = /android/i.test(navigator.userAgent);
 
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+
+    /* ---------- 쫑이 화면 열기 (앱 안에 띄워 보고, 막히면 직접 열기) ---------- */
+    const KEY = 'jjongi_direct4';
+    function startApp() {
+      $('landing').style.display = 'none';
+      let blockedBefore = false;
+      try { blockedBefore = localStorage.getItem(KEY) === '1'; } catch (e) {}
+      if (blockedBefore) { location.replace(target); return; }
+
+      $('splash').style.display = 'flex';
+      $('app').style.display = 'block';
+      let ready = false;
+      window.addEventListener('message', e => {
+        if (e.data && e.data.jjongi === 'ready') {
+          ready = true;
+          try { localStorage.removeItem(KEY); } catch (e2) {}
+          const sp = $('splash'); sp.style.opacity = '0'; setTimeout(() => sp.remove(), 400);
+        }
+      });
+      $('app').src = target;
+      $('direct').href = target;
+      setTimeout(() => { if (!ready) $('direct').style.display = 'block'; }, 4000);
+      setTimeout(() => {
+        if (ready) return;
+        try { localStorage.setItem(KEY, '1'); } catch (e) {}
+        location.replace(target);
+      }, 8000);
+    }
+
+    /* ---------- 설치 안내 ---------- */
+    let deferred = null;
+    function showHow() {
+      if (isIOS) {
+        $('how').innerHTML = '<b>아이폰은 이렇게 설치해요</b><br>1. 아래쪽 <b>공유 버튼(□↑)</b><br>2. <b>홈 화면에 추가</b><br>3. 오른쪽 위 <b>추가</b>';
+        $('install').style.display = 'none';
+      } else {
+        $('how').innerHTML = '<b>버튼이 안 눌리면</b><br>크롬 오른쪽 위 <b>⋮</b> → <b>앱 설치</b> (또는 <b>홈 화면에 추가</b>) → <b>설치</b>';
+      }
+    }
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault();
+      deferred = e;
+      $('install').disabled = false;
+    });
+    window.addEventListener('appinstalled', () => {
+      $('msg').textContent = '설치 완료! 🎉 홈 화면의 "대신봐쫑"을 눌러 주세요';
+      $('install').style.display = 'none';
+    });
+    $('install').addEventListener('click', async () => {
+      if (!deferred) {
+        $('msg').textContent = '👆 위의 안내대로 크롬 메뉴(⋮)에서 설치해 주세요';
+        return;
+      }
+      deferred.prompt();
+      const r = await deferred.userChoice;
+      deferred = null;
+      if (r.outcome !== 'accepted') $('msg').textContent = '언제든 다시 눌러서 설치할 수 있어요 🐶';
+    });
+    $('useWeb').addEventListener('click', startApp);
+
+    // 앱으로 열었거나, 유튜브 '공유'로 들어왔으면 바로 쫑이 화면
+    if (isApp || id) {
+      startApp();
+    } else {
+      $('landing').style.display = 'block';
+      showHow();
+    }
   </script>
 </body>
 </html>
