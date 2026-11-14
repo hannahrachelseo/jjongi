@@ -121,6 +121,11 @@
     .quote { font-size: 12px; color: #7a6552; background: #f6efe6; border-left: 3px solid #e3d5c3; border-radius: 6px; padding: 3px 8px; margin: 3px 0 2px; }
     .fc { background: #f3faf6; border: 1.5px solid #cfe9db; border-radius: 12px; padding: 10px 12px; font-size: 14px; line-height: 1.6; }
     .fcs { margin-top: 8px; }
+    .qok { font-size: 11px; font-weight: 800; color: #1f8a52; }
+    .qbad { font-size: 11px; font-weight: 800; color: #c62828; }
+    .quote.qno { background: #fdecec; border-left-color: #f4a6a6; }
+    .preview:not(.showq) .topic .quote.qno, .preview:not(.showq) .keys .quote.qno { display: block; }
+    .txbadge { display: inline-block; font-size: 12px; font-weight: 800; color: #1a4fa0; background: #eef4ff; border-radius: 999px; padding: 3px 9px; margin: 4px 4px 0 0; }
     .preview h3 { border-top: 1.5px dashed #eadccb; padding-top: 14px; font-size: 16px; }
     .preview li { margin: 5px 0; }
     .items { background: #fff; border: 2px solid #ffb27f; border-radius: 14px; padding: 8px 12px 10px; margin: 10px 0; }
@@ -181,6 +186,34 @@
     .makepdf { margin-top: 4px; }
     .btns button.open { margin: 0; box-shadow: none; border: 0; font-size: 15px; }
     .btns button.open.sub { border: 1.5px solid #1a73e8; }
+    .ntabs { display: flex; gap: 6px; margin-bottom: 8px; }
+    .ntabs button { flex: 1; margin: 0; padding: 9px 4px; font-size: 13px; border-radius: 10px; background: #f6efe6; color: #7a6552; box-shadow: none; border: 1px solid #e3d5c3; }
+    .ntabs button.on { background: #ff7a2f; color: #fff; border-color: #ff7a2f; }
+    .weakbox { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #7a6552; margin: 6px 0 4px; }
+    .nhelp { font-size: 12px; color: #7a6552; background: #fff7ec; border-radius: 10px; padding: 7px 9px; margin: 6px 0; line-height: 1.5; }
+    .ngroup { border: 1.5px solid #eadccb; border-radius: 12px; margin: 8px 0; background: #fff; }
+    .ngroup > summary { padding: 10px 12px; font-weight: 800; cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+    .ngroup > summary::-webkit-details-marker { display: none; }
+    .ngroup .cnt { font-size: 12px; font-weight: 700; color: #7a6552; white-space: nowrap; }
+    .nent { border-top: 1px dashed #f0dcc4; padding: 8px 12px; font-size: 14px; line-height: 1.55; }
+    .nent .meta { font-size: 12px; color: #7a6552; margin-bottom: 2px; }
+    .src { font-size: 12px; margin-top: 5px; color: #5a4636; }
+    .src a { color: #1a73e8; text-decoration: none; font-weight: 700; }
+    #noteSearch { width: 100%; font-size: 15px; padding: 9px 11px; border: 1.5px solid #e3d5c3; border-radius: 10px; box-sizing: border-box; }
+    .nent.weak { opacity: .65; }
+    .weaktag { font-size: 11px; font-weight: 800; color: #9a5b00; background: #fff1a8; border-radius: 6px; padding: 1px 6px; margin-left: 4px; }
+    .grade { display: flex; gap: 6px; margin-top: 6px; }
+    .grade button { flex: 1; margin: 0; padding: 6px 2px; font-size: 13px; border-radius: 9px; background: #f6efe6; color: #5a4636; box-shadow: none; border: 1px solid #e3d5c3; }
+    .grade button.on.hit { background: #e9f7ef; border-color: #1f8a52; color: #1f8a52; font-weight: 800; }
+    .grade button.on.miss { background: #fdecec; border-color: #c62828; color: #c62828; font-weight: 800; }
+    .grade button.on.half { background: #eef4ff; border-color: #1a4fa0; color: #1a4fa0; font-weight: 800; }
+    .score { width: 100%; border-collapse: collapse; font-size: 13px; margin: 6px 0 10px; }
+    .score th, .score td { border: 1px solid #f0dcc4; padding: 5px 6px; text-align: center; }
+    .score th { background: #fff1e0; }
+    .score td:first-child { text-align: left; font-weight: 700; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+    .chips button { width: auto; margin: 0; padding: 5px 10px; font-size: 12px; border-radius: 999px; background: #f6efe6; color: #7a6552; box-shadow: none; border: 1px solid #e3d5c3; }
+    .chips button.on { background: #7a4a12; color: #fff; border-color: #7a4a12; }
     .histbtn { background: #fff; color: #a0703c; border: 1.5px solid #e3d5c3; box-shadow: none; font-size: 16px; margin: 0 0 14px; }
     #histSearch { width: 100%; font-size: 15px; padding: 11px 12px; border: 1.5px solid #e3d5c3; border-radius: 12px; margin-bottom: 10px; }
     .hitem { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid #f0e6da; cursor: pointer; }
@@ -271,6 +304,18 @@
   <div class="card" id="histPanel" style="display:none">
     <input id="histSearch" type="search" placeholder="🔍 제목이나 내용으로 찾기">
     <div id="histList"></div>
+  </div>
+
+  <button type="button" class="histbtn" id="noteBtn" style="display:none">📒 내 노트 · 종목 / 전망 채점 / 대화 사전</button>
+  <div class="card" id="notePanel" style="display:none">
+    <div class="ntabs">
+      <button type="button" data-tab="stock" class="on">📒 종목 노트</button>
+      <button type="button" data-tab="pred">🎯 전망 채점판</button>
+      <button type="button" data-tab="case">💬 대화 사전</button>
+    </div>
+    <input id="noteSearch" type="search" placeholder="🔍 찾기">
+    <label class="weakbox"><input type="checkbox" id="showWeak"> 근거가 약한 것도 보기</label>
+    <div id="noteBody"></div>
   </div>
 
   <div class="card" id="statusCard">
@@ -578,10 +623,51 @@
                    oneLine: summary.oneLine || '', videoUrl, summary, pdf: pdf || null };
     list.unshift(item);
     histWrite(list.slice(0, HIST_MAX));
+    try { notesAddFrom(item); } catch (e) {}
     refreshHistButton();
     return item.id;
   }
   function histGet(id) { return histLoad().find(x => x.id === id); }
+
+  /* ---------- 📒 내 노트: 영상들에서 모은 종목 의견 · 전망 · 대화 사례 (근거 링크 포함) ---------- */
+  const NOTE_KEY = 'jjongi_notes', GRADE_KEY = 'jjongi_grades', NOTE_MAX = 3000;
+  function notesLoad() { try { return JSON.parse(localStorage.getItem(NOTE_KEY) || '[]'); } catch (e) { return []; } }
+  function notesWrite(list) { for (let n = list.length; n > 0; n = Math.floor(n * 0.9)) { try { localStorage.setItem(NOTE_KEY, JSON.stringify(list.slice(0, n))); return; } catch (e) {} } }
+  function gradesLoad() { try { return JSON.parse(localStorage.getItem(GRADE_KEY) || '{}'); } catch (e) { return {}; } }
+  const ALIAS = { '삼전': '삼성전자', '하이닉스': 'sk하이닉스', 'skhynix': 'sk하이닉스', '비트': '비트코인', 'btc': '비트코인', 'bitcoin': '비트코인',
+                  '이더': '이더리움', 'eth': '이더리움', 'tesla': '테슬라', 'nvidia': '엔비디아', 'apple': '애플', '현차': '현대차', '현대자동차': '현대차' };
+  function normName(n) {
+    const k = String(n || '').replace(/\(확인 필요\)/g, '').replace(/주식회사|㈜|\(.*?\)|\s/g, '').toLowerCase();
+    return ALIAS[k] || k;
+  }
+  // 근거가 약하다 = 영상 속 실제 말(인용)이나 시각이 없거나, (확인 필요)가 붙음 → 기본으로 숨김
+  const isWeak = (x, txt) => !x.t || !x.quote || x.qv === 'no' || String(txt || '').includes(UNSURE);
+  function notesFrom(item) {
+    const s = item.summary || {}, base = { hid: item.id, title: item.title, channel: item.channel, videoUrl: item.videoUrl,
+      date: s.published || new Date(item.at).toISOString().slice(0, 10), dateIsUpload: !!s.published, at: item.at };
+    const out = [];
+    ((s.invest && s.invest.mentions) || []).forEach((m, i) => out.push(Object.assign({ id: item.id + ':s' + i, kind: 'stock', name: String(m.name || '').replace(UNSURE, '').trim(),
+      norm: normName(m.name), view: m.view, text: m.text, t: m.t, quote: m.quote, qv: m.qv, weak: isWeak(m, m.text) }, base)));
+    (s.predictions || []).forEach((p, i) => out.push(Object.assign({ id: item.id + ':p' + i, kind: 'pred', claim: p.claim, target: p.target, by: p.by,
+      t: p.t, quote: p.quote, qv: p.qv, weak: isWeak(p, p.claim) }, base)));
+    (s.cases || []).forEach((c, i) => out.push(Object.assign({ id: item.id + ':c' + i, kind: 'case', category: c.category || '기타', ctitle: c.title,
+      situation: c.situation, bad: c.bad, good: c.good, why: c.why, t: c.t, quote: c.good || c.bad ? 'ok' : '', weak: !c.t || String(c.title).includes(UNSURE) }, base)));
+    return out;
+  }
+  function notesAddFrom(item) {
+    const add = notesFrom(item);
+    if (!add.length) return;
+    notesWrite(add.concat(notesLoad()).slice(0, NOTE_MAX));
+  }
+  // 처음 한 번: 이미 있는 기록에서 노트 만들기
+  (function migrateNotes() {
+    try {
+      if (localStorage.getItem(NOTE_KEY)) return;
+      let all = [];
+      histLoad().forEach(it => { all = all.concat(notesFrom(it)); });
+      notesWrite(all);
+    } catch (e) {}
+  })();
   function histSetPdf(id, saved) {
     const list = histLoad(), it = list.find(x => x.id === id);
     if (it) { it.pdfSaved = !!saved; histWrite(list); }
@@ -1633,6 +1719,12 @@
     return h + '</div>';
   }
 
+  // 영상 속 실제 말: ✅ 자막에서 확인됨 / ⚠️ 자막에서 못 찾음(지어냈을 수 있음)
+  function qHtml(x) {
+    if (!x || !x.quote) return '';
+    const tag = x.qv === 'ok' ? '<span class="qok">✅ 자막 확인</span> ' : x.qv === 'no' ? '<span class="qbad">⚠️ 자막에 없음</span> ' : '🗣 ';
+    return '<div class="quote' + (x.qv === 'no' ? ' qno' : '') + '">' + tag + '"' + esc(x.quote) + '"</div>';
+  }
   // [3:12] 근거 시각 링크
   function evLink(t, videoUrl) {
     const sec = toSec(t);
@@ -1642,7 +1734,7 @@
   function pointsHtml(points, videoUrl) {
     if (!points || !points.length) return '';
     return '<ul>' + points.map(p => '<li>' + hl(p.text) + evLink(p.t, videoUrl) +
-      (p.quote ? '<div class="quote">🗣 "' + esc(p.quote) + '"</div>' : '') + '</li>').join('') + '</ul>';
+      qHtml(p) + '</li>').join('') + '</ul>';
   }
 
   // 💰 재테크 영상: 투자 포인트
@@ -1654,11 +1746,11 @@
     if (inv.line) h += '<div class="iline">' + hl(inv.line) + '</div>';
     if (dir.length) h += '<h4>📈 투자 방향</h4><ul>' + dir.map(p => '<li>' + hl(p.text) + evLink(p.t, videoUrl) +
       (p.condition ? '<div class="cond">↳ 조건·전제: ' + hl(p.condition) + '</div>' : '') +
-      (p.quote ? '<div class="quote">🗣 "' + esc(p.quote) + '"</div>' : '') + '</li>').join('') + '</ul>';
+      qHtml(p) + '</li>').join('') + '</ul>';
     if (cau.length) h += '<h4>⚠️ 유의사항 · 위험 (꼭 읽기)</h4><div class="caut">' + pointsHtml(cau, videoUrl) + '</div>';
     if (men.length) h += '<h4>🏷️ 언급된 종목·자산</h4><table><tr><th>종목·자산</th><th>의견</th><th>이유</th></tr>' + men.map(m =>
       '<tr><td><b>' + esc(m.name) + '</b>' + evLink(m.t, videoUrl) + '</td><td><span class="view ' + (m.view === '매수' ? 'buy' : m.view === '매도' ? 'sell' : '') + '">' + esc(m.view) + '</span></td>' +
-      '<td>' + hl(m.text || '') + (m.quote ? '<div class="quote">🗣 "' + esc(m.quote) + '"</div>' : '') + '</td></tr>').join('') + '</table>';
+      '<td>' + hl(m.text || '') + qHtml(m) + '</td></tr>').join('') + '</table>';
     return h + '<div class="warnline">※ 영상 속 주장을 그대로 옮긴 것이며 투자 권유가 아님. 투자 판단과 책임은 본인에게! 숫자는 [시각]을 눌러 원본으로 꼭 확인하기.</div></div>';
   }
   // 📋 "N가지" 영상: 항목 한눈에
@@ -1667,7 +1759,7 @@
     let h = '<div class="items"><h3>📋 ' + (it.expected ? '영상 속 ' + esc(it.label) + ' 한눈에' : '영상이 소개한 ' + it.list.length + '가지') + '</h3>';
     if (it.missing && it.missing.length) h += '<div class="miss">⚠️ 제목은 ' + esc(it.label) + '인데 쫑이가 찾은 건 ' + it.list.length + '개예요. 빠졌을 수 있는 번호: ' + it.missing.join(', ') + ' (영상으로 확인해 주세요)</div>';
     h += it.list.map((x, i) => '<div class="item"><div class="no">' + (i + 1) + '</div><div><div class="nm">' + hl(x.name) + evLink(x.t, videoUrl) + '</div>' +
-      (x.detail ? '<div class="dt">' + hl(x.detail) + '</div>' : '') + (x.quote ? '<div class="quote">🗣 "' + esc(x.quote) + '"</div>' : '') + '</div></div>').join('');
+      (x.detail ? '<div class="dt">' + hl(x.detail) + '</div>' : '') + qHtml(x) + '</div></div>').join('');
     return h + '</div>';
   }
   // 💬 연애·대화법 영상: 사례 카드
@@ -1695,11 +1787,16 @@
     if (a.numberNoQuote) lines.push('영상 속 말(인용)이 없는 숫자·이름 ' + a.numberNoQuote + '개');
     if (a.outOfRange) lines.push('영상 길이를 벗어난 시각 ' + a.outOfRange + '개');
     if (a.investNoQuote) lines.push('영상 속 실제 말이 없는 투자 의견 ' + a.investNoQuote + '개');
+    if (a.quoteNotFound) lines.push('자막에서 못 찾은 인용(지어냈을 수 있음) ' + a.quoteNotFound + '개');
     const mmss = x => (x >= 60 ? Math.floor(x / 60) + '분 ' : '') + (x % 60) + '초';
     const tm = fc.timing ? '<p>⏱ 걸린 시간 ' + mmss(fc.timing.total) + ' (시작 대기 ' + mmss(fc.timing.wait) + ' · 영상 보기 ' + mmss(fc.timing.watch) + ' · 정리 ' + mmss(fc.timing.finish) + ')</p>' : '';
+    const tx = fc.tx || {};
+    const txl = tx.none ? '<p>🧾 이 영상은 자막을 못 가져와서 인용 대조를 못 했어요 (영상을 직접 봄)</p>'
+      : tx.checked ? '<p>🧾 자막 대조: 인용 ' + tx.checked + '개 중 <b>' + tx.ok + '개 실제 자막에서 확인 ✅</b>' + (tx.no ? ', ' + tx.no + '개는 자막에 없음 ⚠️' : '') +
+        (tx.timeFixed ? ' · 시각 ' + tx.timeFixed + '곳을 자막 기준으로 바로잡음' : '') + '</p>' : '';
     const proof = fc.proof && fc.proof.fixed ? '<p>✍️ 맞춤법·오타 ' + fc.proof.fixed + '곳 교정함 (뜻·숫자는 그대로)</p>' : '';
     h += '<div class="fcs"><b>🤖 자동 점검</b>' +
-      (lines.length ? list(lines.map(x => x + ' → ' + UNSURE + ' 표시함')) : '<p>근거 없는 문장 없음 👍</p>') + proof + tm + '</div>';
+      (lines.length ? list(lines.map(x => x + ' → ' + UNSURE + ' 표시함')) : '<p>근거 없는 문장 없음 👍</p>') + txl + proof + tm + '</div>';
     h += '<p class="muted">AI는 그럴듯하게 지어낼 수 있어요(환각). 쫑이는 근거 시각·영상 속 인용·교차 검증으로 줄이지만 0으로 만들 수는 없어요. ' +
       '중요한 내용은 [시각]을 눌러 원본으로 확인하세요.</p>';
     return h + '</div></details>';
@@ -1815,7 +1912,10 @@
     html += '<div class="card preview">';
     if (id) html += '<img class="thumb" src="https://i.ytimg.com/vi/' + id + '/hqdefault.jpg" alt="">';
     html += '<h2>' + esc(s.title) + '</h2>';
-    if (s.channel) html += '<div class="muted">' + esc(s.channel) + '</div>';
+    if (s.channel || s.published) html += '<div class="muted">' + esc(s.channel || '') + (s.published ? ' · 📅 ' + esc(s.published) + ' 업로드' : '') + '</div>';
+    const ftx = (s.factCheck && s.factCheck.tx) || {};
+    if (ftx.used) html += '<span class="txbadge">🧾 자막(대본)을 읽고 요약</span>';
+    if (ftx.checked) html += '<span class="txbadge">✅ 인용 ' + ftx.ok + '/' + ftx.checked + ' 자막 확인</span>';
     if (s.check && s.check.done) html += '<div class="badge">🔍 쫑이 검증 완료 · ' + (s.check.fixes ? s.check.fixes + '군데 고쳤음' : '고칠 곳 없었음') + '</div>';
     if (s.oneLine) html += '<p class="one"><b>그래서 결론:</b> ' + hl(s.oneLine) + '</p>';
     html += investHtml(s.invest, videoUrl);
@@ -1826,6 +1926,11 @@
       html += (s.mode === 'visual' && s.pointsBlock && s.pointsBlock._svg) ? '<div class="art">' + s.pointsBlock._svg + '</div>' : '<div class="keys">' + pointsHtml(s.keyTakeaways, videoUrl) + '</div>';
     }
     html += casesHtml(s.cases, videoUrl);
+    if (s.predictions && s.predictions.length) {
+      html += '<h3>🎯 이 영상의 전망</h3><p class="muted">시간이 지나면 📒 내 노트 → 🎯 전망 채점판에서 맞았는지 체크해 보세요.</p><ul>' +
+        s.predictions.map(p => '<li>' + (p.target ? '<b>[' + esc(p.target) + ']</b> ' : '') + hl(p.claim) + (p.by ? ' <span class="muted">(기한: ' + esc(p.by) + ')</span>' : '') +
+          evLink(p.t, videoUrl) + qHtml(p) + '</li>').join('') + '</ul>';
+    }
     if (s.mode !== 'text' && s.illustrations.length) {
       html += '<h3>🖼️ 그림으로 한눈에</h3>' + s.illustrations.map(b => blockHtml(b, videoUrl, false)).join('');
     }
@@ -2064,6 +2169,7 @@
     const n = histLoad().length;
     $('histBtn').textContent = '📚 지금까지 요약한 기록' + (n ? ' (' + n + '개)' : '');
     $('histBtn').style.display = n ? 'block' : 'none';
+    if (typeof refreshNoteButton === 'function') try { refreshNoteButton(); } catch (e) {}
   }
   function fmtDate(t) {
     const d = new Date(t), p = x => String(x).padStart(2, '0');
@@ -2105,6 +2211,111 @@
   });
   refreshHistButton();
 
+
+  /* ---------- 📒 내 노트 화면 ---------- */
+  let NOTE_TAB = 'stock', NOTE_CAT = '', PRED_FILTER = 'todo';
+  const VIEW_CLS = v => v === '매수' ? 'buy' : v === '매도' ? 'sell' : '';
+  function srcLink(n) {
+    const sec = toSec(n.t);
+    return '<div class="src">' + (n.dateIsUpload ? '📅 ' + esc(n.date) + ' 영상' : '📅 ' + esc(n.date) + ' 요약') + ' · ' + esc(n.channel || '') +
+      (sec != null ? ' · <a target="_blank" rel="noopener" href="' + esc(n.videoUrl + '&t=' + sec + 's') + '">▶ ' + esc(n.t) + ' 원본 보기</a>' : '') +
+      '<br><span class="muted">' + esc(n.title || '') + '</span></div>';
+  }
+  const weakTag = n => n.weak ? '<span class="weaktag">근거 약함</span>' : '';
+  function refreshNoteButton() {
+    const n = notesLoad().length;
+    $('noteBtn').style.display = n ? 'block' : 'none';
+  }
+  function renderNotes() {
+    const q = ($('noteSearch').value || '').trim().toLowerCase();
+    const showWeak = $('showWeak').checked;
+    const all = notesLoad().filter(n => n.kind === NOTE_TAB && (showWeak || !n.weak));
+    const hit = n => !q || JSON.stringify([n.name, n.text, n.claim, n.target, n.ctitle, n.situation, n.good, n.bad, n.channel, n.title]).toLowerCase().includes(q);
+    const list = all.filter(hit);
+    const hidden = notesLoad().filter(n => n.kind === NOTE_TAB && n.weak && !showWeak).length;
+    let h = '';
+    if (NOTE_TAB === 'stock') {
+      h += '<div class="nhelp">여러 영상에서 유튜버들이 이 종목에 대해 <b>언제, 뭐라고</b> 했는지 모았어요. 모든 의견에 영상 속 실제 말과 ▶원본 링크가 붙어 있어요. 투자 권유가 아니에요.</div>';
+      const groups = {};
+      list.forEach(n => { (groups[n.norm] = groups[n.norm] || []).push(n); });
+      const keys = Object.keys(groups).sort((a, b) => groups[b].length - groups[a].length);
+      h += keys.length ? keys.map(k => {
+        const g = groups[k].sort((a, b) => (b.date || '').localeCompare(a.date || '') || b.at - a.at);
+        const cnt = {}; g.forEach(n => { cnt[n.view] = (cnt[n.view] || 0) + 1; });
+        const shown = g.map(n => n.name).sort((a, b) => b.length - a.length)[0];   // 줄임말보다 정식 이름으로
+        return '<details class="ngroup"><summary><span>' + esc(shown) + '</span><span class="cnt">' +
+          Object.keys(cnt).map(v => '<span class="view ' + VIEW_CLS(v) + '">' + esc(v) + ' ' + cnt[v] + '</span>').join(' ') + '</span></summary>' +
+          g.map(n => '<div class="nent' + (n.weak ? ' weak' : '') + '"><div><span class="view ' + VIEW_CLS(n.view) + '">' + esc(n.view) + '</span> ' + hl(n.text || '') + weakTag(n) + '</div>' +
+            qHtml(n) + srcLink(n) + '</div>').join('') + '</details>';
+      }).join('') : '<p class="muted" style="text-align:center">아직 모인 종목이 없어요. 재테크 영상을 요약하면 자동으로 쌓여요 📈</p>';
+    } else if (NOTE_TAB === 'pred') {
+      const G = gradesLoad();
+      h += '<div class="nhelp">유튜버가 "앞으로 이렇게 될 것"이라고 말한 전망이에요. 시간이 지나 결과가 나오면 <b>직접 확인하고</b> ⭕/❌를 눌러 주세요. ' +
+        '쫑이가 결과를 지어내지 않도록 자동 채점은 하지 않아요. 채점이 쌓이면 유튜버별 적중률이 나와요.</div>';
+      // 유튜버별 적중률
+      const byCh = {};
+      notesLoad().filter(n => n.kind === 'pred').forEach(n => {
+        const g = G[n.id]; if (!g) return;
+        const c = byCh[n.channel || '(채널 모름)'] = byCh[n.channel || '(채널 모름)'] || { hit: 0, miss: 0, half: 0 };
+        c[g]++;
+      });
+      const chs = Object.keys(byCh);
+      if (chs.length) h += '<table class="score"><tr><th>유튜버</th><th>⭕</th><th>❌</th><th>🤷</th><th>적중률</th></tr>' + chs.map(c => {
+        const x = byCh[c], tot = x.hit + x.miss;
+        return '<tr><td>' + esc(c) + '</td><td>' + x.hit + '</td><td>' + x.miss + '</td><td>' + x.half + '</td><td><b>' + (tot ? Math.round(100 * x.hit / tot) + '%' : '-') + '</b></td></tr>';
+      }).join('') + '</table>';
+      h += '<div class="chips">' + [['todo', '채점 전'], ['hit', '⭕ 맞음'], ['miss', '❌ 틀림'], ['half', '🤷 애매'], ['all', '전체']].map(([k, l]) =>
+        '<button type="button" data-pf="' + k + '" class="' + (PRED_FILTER === k ? 'on' : '') + '">' + l + '</button>').join('') + '</div>';
+      const fl = list.filter(n => PRED_FILTER === 'all' || (PRED_FILTER === 'todo' ? !G[n.id] : G[n.id] === PRED_FILTER))
+        .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+      h += fl.length ? fl.map(n => {
+        const days = n.date ? Math.floor((Date.now() - new Date(n.date).getTime()) / 864e5) : null;
+        return '<div class="ngroup"><div class="nent' + (n.weak ? ' weak' : '') + '" style="border-top:none">' +
+          '<div class="meta">' + (n.target ? '🎯 ' + esc(n.target) + ' · ' : '') + (n.by ? '기한: ' + esc(n.by) + ' · ' : '') + (days != null ? days + '일 전 전망' : '') + '</div>' +
+          '<div><b>' + hl(n.claim) + '</b>' + weakTag(n) + '</div>' + qHtml(n) + srcLink(n) +
+          '<div class="grade" data-gid="' + esc(n.id) + '">' + [['hit', '⭕ 맞음'], ['miss', '❌ 틀림'], ['half', '🤷 애매']].map(([k, l]) =>
+            '<button type="button" data-g="' + k + '" class="' + k + (G[n.id] === k ? ' on' : '') + '">' + l + '</button>').join('') + '</div></div></div>';
+      }).join('') : '<p class="muted" style="text-align:center">' + (PRED_FILTER === 'todo' ? '채점할 전망이 없어요 🎉' : '해당하는 전망이 없어요') + '</p>';
+    } else {
+      h += '<div class="nhelp">연애·대화법 영상에서 나온 사례를 상황별로 모았어요. 예시 말은 영상에 나온 그대로예요.</div>';
+      const cats = {}; list.forEach(n => { cats[n.category] = (cats[n.category] || 0) + 1; });
+      h += '<div class="chips"><button type="button" data-cat="" class="' + (NOTE_CAT ? '' : 'on') + '">전체 ' + list.length + '</button>' +
+        Object.keys(cats).map(c => '<button type="button" data-cat="' + esc(c) + '" class="' + (NOTE_CAT === c ? 'on' : '') + '">' + esc(c) + ' ' + cats[c] + '</button>').join('') + '</div>';
+      const fl = list.filter(n => !NOTE_CAT || n.category === NOTE_CAT);
+      h += fl.length ? fl.map(n => '<div class="case"><div class="ct">' + hl(n.ctitle) + weakTag(n) + '</div>' +
+        (n.situation ? '<div class="row sit"><b>📍 상황</b>' + hl(n.situation) + '</div>' : '') +
+        (n.bad ? '<div class="row bad"><b>❌ 이렇게 말하면</b>' + hl(n.bad) + '</div>' : '') +
+        (n.good ? '<div class="row good"><b>⭕ 이렇게 말해 보기</b>' + hl(n.good) + '</div>' : '') +
+        (n.why ? '<div class="row why"><b>💡 왜?</b>' + hl(n.why) + '</div>' : '') + srcLink(n) + '</div>').join('')
+        : '<p class="muted" style="text-align:center">아직 모인 사례가 없어요. 연애·대화법 영상을 요약하면 쌓여요 💬</p>';
+    }
+    if (hidden) h += '<p class="muted" style="text-align:center">근거(영상 속 실제 말·시각)가 약하거나 자막에서 확인이 안 돼서 숨긴 것 ' + hidden + '개 — 위 체크박스로 볼 수 있어요</p>';
+    $('noteBody').innerHTML = h;
+  }
+  $('noteBtn').addEventListener('click', () => {
+    const open = $('notePanel').style.display !== 'block';
+    $('notePanel').style.display = open ? 'block' : 'none';
+    if (open) { renderNotes(); $('notePanel').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  });
+  $('notePanel').addEventListener('click', e => {
+    const tab = e.target.closest('[data-tab]');
+    if (tab) { NOTE_TAB = tab.dataset.tab; document.querySelectorAll('.ntabs button').forEach(b => b.classList.toggle('on', b === tab)); renderNotes(); return; }
+    const cat = e.target.closest('[data-cat]');
+    if (cat) { NOTE_CAT = cat.dataset.cat; renderNotes(); return; }
+    const pf = e.target.closest('[data-pf]');
+    if (pf) { PRED_FILTER = pf.dataset.pf; renderNotes(); return; }
+    const g = e.target.closest('[data-g]');
+    if (g) {
+      const id = g.closest('[data-gid]').dataset.gid, G = gradesLoad();
+      G[id] = G[id] === g.dataset.g ? undefined : g.dataset.g;   // 한 번 더 누르면 취소
+      if (!G[id]) delete G[id];
+      try { localStorage.setItem(GRADE_KEY, JSON.stringify(G)); } catch (e2) {}
+      renderNotes();
+    }
+  });
+  $('noteSearch').addEventListener('input', renderNotes);
+  $('showWeak').addEventListener('change', renderNotes);
+  refreshNoteButton();
 
   $('go').addEventListener('click', () => onGo(null));
 
