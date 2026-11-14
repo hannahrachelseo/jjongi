@@ -205,6 +205,7 @@
 
     <label for="speed">어떻게 볼까?</label>
     <select id="speed">
+      <option value="lightning">⚡ 번개처럼 (가장 빠름, 대충 흐름만 알고 싶을 때)</option>
       <option value="fast" selected>2배속처럼 빠르게 (추천)</option>
       <option value="careful">눈 크게 뜨고 꼼꼼하게 (화면 속 글씨·표 중요할 때, 느림)</option>
     </select>
@@ -265,6 +266,7 @@
   //  fps     : 1초에 몇 장 볼지 (기본 1 → 0.5면 절반)
   //  thinking: 생각 깊이 ('low'면 빨라짐. 3.8/3.7 Flash는 'minimal' 불가)
   const SPEED = {
+    lightning: { lowres: true, fps: 0.33, thinking: 'low' },
     fast:    { lowres: true,  fps: 0.5,  thinking: 'low' },
     careful: { lowres: false, fps: null, thinking: null }
   };
