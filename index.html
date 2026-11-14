@@ -37,7 +37,7 @@
     .card { background: #fff; border-radius: 16px; padding: 16px; box-shadow: 0 2px 6px rgba(80,50,20,.08); margin-bottom: 14px; }
     label { display: block; font-size: 14px; font-weight: 700; margin: 12px 0 6px; }
     label:first-child { margin-top: 0; }
-    input[type=url], select { width: 100%; font-size: 16px; padding: 12px; border: 1.5px solid #e3d5c3; border-radius: 12px; background: #fff; color: inherit; }
+    input[type=url], input[type=email], select { width: 100%; font-size: 16px; padding: 12px; border: 1.5px solid #e3d5c3; border-radius: 12px; background: #fff; color: inherit; }
     input[type=url]:focus, select:focus { outline: none; border-color: #ff7a2f; }
     button { width: 100%; font-size: 18px; font-weight: 800; padding: 15px; margin-top: 16px; border: 0;
              border-radius: 14px; background: #ff7a2f; color: #fff; cursor: pointer; letter-spacing: -0.3px;
@@ -126,6 +126,14 @@
                   border-radius: 14px; padding: 10px 12px 10px 14px; font-size: 13px; font-weight: 700; margin-bottom: 10px; }
     .installbar button { width: auto; margin: 0; padding: 8px 14px; font-size: 14px; border-radius: 10px; box-shadow: none; flex: none; }
     #status .tip { display: inline-block; margin-top: 6px; font-size: 12px; color: #7a6552; }
+    .resume { background: #fff1e0; border: 2px dashed #ffb27f; font-size: 14px; line-height: 1.6; }
+    .rbtns { display: flex; gap: 8px; margin-top: 10px; }
+    .rbtns button { margin: 0; padding: 11px; font-size: 15px; }
+    .rbtns .ghostbtn { background: #fff; color: #7a6552; border: 1.5px solid #e3d5c3; box-shadow: none; width: 40%; }
+    .artpdf { margin-top: 10px; background: #fff; color: #ff7a2f; border: 1.5px solid #ff7a2f; box-shadow: none; font-size: 15px; padding: 11px; }
+    #lastLink { color: #a0703c; font-weight: 800; text-decoration: none; margin-bottom: 6px; }
+    .hint2.warn { background: #fff1e0; color: #8a4b00; border-radius: 10px; padding: 8px 10px; }
+    .hint2 { font-size: 12px; color: #7a6552; margin-top: 6px; line-height: 1.5; }
     footer { text-align: center; font-size: 12px; color: #b09a85; margin-top: 18px; }
   </style>
 </head>
@@ -144,6 +152,13 @@
   <p class="tag">링크만 던져. 한나T네 쫑이가 대신 보고 결론만 PDF로 물어다 줌 🦴</p>
 
   <div class="card" id="warn" style="display:none"></div>
+  <div class="card resume" id="resumeCard" style="display:none">
+    <div id="resumeText"></div>
+    <div class="rbtns">
+      <button type="button" id="resumeGo">결과 가져오기 🐾</button>
+      <button type="button" id="resumeDrop" class="ghostbtn">버리기</button>
+    </div>
+  </div>
   <div class="card" id="prefillMsg" style="display:none">📤 공유받은 영상 링크가 들어갔어요! 아래 버튼만 누르면 돼요.</div>
 
   <div id="lock" class="lock" style="display:none">
@@ -188,6 +203,9 @@
       <option value="off">확인 생략 (제일 빠름)</option>
     </select>
 
+    <div class="hint2">📴 새로고침하거나 앱을 꺼도 쫑이는 서버에서 끝까지 봐요.<br>끝나면 <b>휴대폰 상단 알림🔔</b>으로 알려줘요. (처음 한 번 <b>"알림 허용"</b>을 눌러 주세요)</div>
+    <div class="hint2 warn" id="pushWarn" style="display:none"></div>
+
     <button type="button" id="go">결론만 내놔 🐾</button>
   </div>
 
@@ -198,7 +216,7 @@
   </div>
   <div id="result"></div>
 
-  <footer>made by 한나T · 감독·주연: 쫑이 🐶</footer>
+  <footer><a href="#" id="lastLink" style="display:none">📄 지난 결과 다시 보기</a><br>made by 한나T · 감독·주연: 쫑이 🐶</footer>
 </div>
 
 <script>
@@ -310,7 +328,7 @@
         const fun = FUN[funOrder[Math.floor(sec / 5) % funOrder.length]];
         el.innerHTML = '<span class="fun">' + esc(fun) + '</span>\n' + esc(curMsg) +
           '\n경과: ' + Math.floor(sec / 60) + '분 ' + (sec % 60) + '초' +
-          '\n<span class="tip">💡 화면은 안 꺼지게 해 뒀어요. 잠깐 딴 앱 갔다 와도 돌아오면 이어서 해요 · 끝나면 알림 🔔</span>';
+          '\n<span class="tip">💡 쫑이는 구글 서버에서 일해요. 앱을 꺼도 끝까지 하고, 끝나면 휴대폰 알림🔔이 와요</span>';
       };
       draw();
       timer = setInterval(draw, 1000);
@@ -439,6 +457,29 @@
       clearTimeout(t);
     }
   }
+
+  /* ---------- 앱을 꺼도 이어서: 진행 상황을 휴대폰에 저장 ---------- */
+
+  const JOB_KEY = 'jjongi_job', LAST_KEY = 'jjongi_last';
+  let JOB = null;   // 지금 하는 일 { videoUrl, opts, info, parts: {...}, summary }
+  const noPics = (k, v) => (k === 'png' || k === '_svg') ? undefined : v;
+  function jobSave() { try { if (JOB) localStorage.setItem(JOB_KEY, JSON.stringify(JOB, noPics)); } catch (e) {} }
+  function jobLoad() {
+    try {
+      const j = JSON.parse(localStorage.getItem(JOB_KEY) || 'null');
+      if (j && j.videoUrl && Date.now() - (j.created || 0) < 24 * 3600 * 1000) return j;   // 하루 지난 건 버림
+    } catch (e) {}
+    return null;
+  }
+  function jobClear() { JOB = null; try { localStorage.removeItem(JOB_KEY); } catch (e) {} }
+  // 끝난 결과도 저장 → 앱을 꺼도 "지난 결과 다시 보기" 가능
+  function lastSave(summary, pdf, videoUrl) {
+    try { localStorage.setItem(LAST_KEY, JSON.stringify({ summary, pdf, videoUrl, at: Date.now() }, noPics)); } catch (e) {}
+  }
+  function lastLoad() { try { return JSON.parse(localStorage.getItem(LAST_KEY) || 'null'); } catch (e) { return null; } }
+  // 단계별 결과 꺼내기/넣기
+  const partGet = k => JOB && JOB.parts && JOB.parts[k];
+  function partPut(k, v) { if (!JOB) return; JOB.parts = JOB.parts || {}; JOB.parts[k] = v; jobSave(); }
 
   /* ---------- 다른 앱 갔다 와도 이어서 + 화면 켜두기 + 완료 알림 ---------- */
 
@@ -950,11 +991,12 @@
     if (cloneMode !== 'roles') showRoleClones();
     updateMsg('쫑이 분신술! 펑! 🐶×5\n1호가 영상 보고, 나머지는 각자 맡은 일 하는 중');
     const R = newReport(opts.check);
-    const out = await produce({ videoUrl, rangeText: '영상 전체' }, wholePrompt(opts.detail, opts.mode, info), opts, stage => {
+    const out = partGet('whole') || await produce({ videoUrl, rangeText: '영상 전체' }, wholePrompt(opts.detail, opts.mode, info), opts, stage => {
       if (stage === 'double') { cloneState(0, 'double'); updateMsg('초정밀 모드! 서로 다른 AI 두 개가 따로따로 보는 중 👀👀'); }
       if (stage === 'verify') { cloneState(0, 'verify'); updateMsg('1호가 다 봤음! 이제 다른 AI가 영상이랑 하나하나 대조하는 중 🔍'); }
       if (stage === 'reconcile') { cloneState(0, 'verify'); updateMsg('두 요약을 영상으로 비교하는 중… 둘 다 맞는 것만 남김 ⚖️'); }
     });
+    partPut('whole', out);
     addReport(R, out.check);
     const r = out.data;
     const fx = t => t == null ? 0 : t;
@@ -982,9 +1024,14 @@
 
     const R = newReport(opts.check);
     const results = await Promise.all(chunks.map(async (c, i) => {
-      const req = { videoUrl, start: c.start, end: c.end, rangeText: fmtTime(c.coreStart) + '~' + fmtTime(c.coreEnd) + ' 구간' };
-      const out = await produce(req, chunkPrompt(opts.detail, opts.mode, c, info), opts,
-        stage => cloneState(i, stage === 'double' ? 'double' : 'verify'));
+      const key = 'c' + i + '_' + c.coreStart;
+      let out = partGet(key);   // 앱 꺼지기 전에 끝난 구간이면 그대로 씀
+      if (!out) {
+        const req = { videoUrl, start: c.start, end: c.end, rangeText: fmtTime(c.coreStart) + '~' + fmtTime(c.coreEnd) + ' 구간' };
+        out = await produce(req, chunkPrompt(opts.detail, opts.mode, c, info), opts,
+          stage => cloneState(i, stage === 'double' ? 'double' : 'verify'));
+        partPut(key, out);
+      }
       done++; cloneState(i, 'done'); show();
       return { c, r: out.data, check: out.check };
     }));
@@ -1015,7 +1062,11 @@
 
     clonesMerge();
     updateMsg(opts.mode === 'text' ? '쫑이들 합체 중! 본 내용 하나로 모으는 중 🌀' : '쫑이들 합체 중! 내용 모아서 그림으로 정리하는 중 🌀🖍️');
-    const top = await ask({ prompt: mergePrompt(opts.detail, opts.mode, sections, videoVisuals, info) }, opts.speed);
+    let top = partGet('merge');
+    if (!top) {
+      top = await ask({ prompt: mergePrompt(opts.detail, opts.mode, sections, videoVisuals, info) }, opts.speed);
+      partPut('merge', top);
+    }
 
     return {
       title: (info && info.title) || str(top.title),
@@ -1519,52 +1570,167 @@
 
   /* ---------- 버튼 ---------- */
 
-  async function onGo() {
+  /* ---------- 휴대폰 상단 알림 (앱이 꺼져 있어도) ---------- */
+
+  const VAPID_PUBLIC = 'BBaSWyiJaK1ci-6xHmTdCM4V6aVU0WevNhXooJPhG6fIa0P5Dt35ulJIfOPFmJeDqpB5rYAsSo8brYxa_5-NLik';
+  function b64uToBytes(s) {
+    s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '=';
+    const raw = atob(s), out = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+    return out;
+  }
+  // 알림 허락받고 이 휴대폰의 알림 주소 받아오기 (실패하면 빈 값 → 메일만)
+  async function getPushEndpoint() {
+    try {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) return '';
+      if (Notification.permission === 'default') await Notification.requestPermission();
+      if (Notification.permission !== 'granted') return '';
+      const reg = await Promise.race([navigator.serviceWorker.ready, sleep(4000).then(() => null)]);
+      if (!reg) return '';
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64uToBytes(VAPID_PUBLIC) });
+      return (sub && sub.endpoint) || '';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function showPushWarn(on) {
+    const w = $('pushWarn');
+    if (!on) { w.style.display = 'none'; return; }
+    w.innerHTML = '🔕 <b>알림이 꺼져 있어요.</b> 끝났을 때 배너를 받으려면:<br>' +
+      '휴대폰 <b>설정 → 애플리케이션 → 대신봐쫑(또는 Chrome) → 알림</b>을 켜 주세요.';
+    w.style.display = 'block';
+  }
+  // 앱 열 때 알림 상태 미리 알려주기
+  try { if ('Notification' in window && Notification.permission === 'denied') showPushWarn(true); } catch (e) {}
+
+  /* ---------- 서버에 맡기기: 앱을 꺼도 서버가 끝까지 ---------- */
+
+
+  // 영상 길이를 브라우저에서 재 보기 (서버가 못 잴 때 대비용)
+  function durationFromPlayer(id, timeoutMs) {
+    return new Promise(resolve => {
+      let player = null, box = null, finished = false;
+      const done = v => {
+        if (finished) return; finished = true;
+        clearTimeout(timer2);
+        try { player && player.destroy(); } catch (e) {}
+        try { box && box.remove(); } catch (e) {}
+        resolve(v || 0);
+      };
+      const timer2 = setTimeout(() => done(0), timeoutMs);
+      const make = () => {
+        try {
+          box = document.createElement('div');
+          box.style.cssText = 'position:fixed;left:-9999px;top:0;width:200px;height:120px;';
+          const inner = document.createElement('div');
+          box.appendChild(inner); document.body.appendChild(box);
+          player = new YT.Player(inner, { videoId: id, width: 200, height: 120, playerVars: { mute: 1 },
+            events: {
+              onReady: e => { let n = 0; const poll = () => { const d = e.target.getDuration(); if (d > 0) done(Math.round(d)); else if (++n < 20) setTimeout(poll, 250); else done(0); }; poll(); },
+              onError: () => done(0)
+            } });
+        } catch (e) { done(0); }
+      };
+      if (window.YT && YT.Player) return make();
+      const prev = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = () => { if (prev) prev(); make(); };
+      if (!document.getElementById('ytapi')) {
+        const sc = document.createElement('script');
+        sc.id = 'ytapi'; sc.src = 'https://www.youtube.com/iframe_api'; sc.onerror = () => done(0);
+        document.head.appendChild(sc);
+      }
+    });
+  }
+
+  const STAGE_TEXT = {
+    info: '영상 길이 재는 중 📏',
+    summ: '쫑이들이 나눠서 보는 중 👀',
+    check: '다른 AI가 팩트체크 중 🔍',
+    merge: '쫑이들 합체 중 🌀',
+    pdf: 'PDF로 포장하는 중 📦'
+  };
+
+  async function onGo(resume) {
     const btn = $('go');
     if (btn.disabled) return;
-
-    const id = videoIdOf($('url').value);
-    if (!id) { setStatus('음… 이건 유튜브 링크가 아닌 것 같은데? 🤨\n유튜브 앱에서 공유 → 링크 복사 해서 붙여 넣어 줘.', true); return; }
     if (!API_KEY) { showLock(); return; }
-    const videoUrl = 'https://www.youtube.com/watch?v=' + id;
-    const opts = {
-      detail: $('detail').value,
-      mode: $('mode').value,
-      speed: $('speed').value,
-      check: $('verify').value
-    };
 
     btn.disabled = true;
     btn.textContent = '쫑이가 보는 중… 🐾';
-    askNotifyPermission();
-    jobRunning = true; wasAway = false;
-    keepAwake(true);
+    $('resumeCard').style.display = 'none';
     $('result').innerHTML = '';
+    askNotifyPermission();
+    jobRunning = true;
+    keepAwake(true);
     jobStart = 0;
-    setStatus('링크 받았음! 쫑이 분신술 준비 중 📏', false, true);
     showRoleClones();
+
     try {
-      // 영상 길이·제목 알아오기 (실패하면 그냥 한 번에 보기)
-      const info = await server('getVideoInfo', 20000, id, PW).catch(() => null);
-      const summary = await summarize(videoUrl, opts, info);
-      summary.mode = opts.mode;
-      if (opts.mode === 'text') { summary.illustrations = []; summary.videoVisuals = []; }
-      summary.factCheck.auto = audit(summary, info && info.seconds);
-      rolesDone();
-      clonesMerge();
-      if (opts.mode !== 'text') {
+      if (resume && resume.jobId) {
+        JOB = resume;
+        setStatus('쫑이가 서버에서 계속 보고 있었어요! 진행 상황 가져오는 중 🐾', false, true);
+      } else {
+        const id = videoIdOf($('url').value);
+        if (!id) throw new Error('NOLINK');
+        const videoUrl = 'https://www.youtube.com/watch?v=' + id;
+        const opts = { detail: $('detail').value, mode: $('mode').value, speed: $('speed').value, check: $('verify').value };
+        const email = '';   // 메일 알림은 안 씀 (휴대폰 알림만)
+        setStatus('링크 받았음! 영상 길이 재는 중 📏', false, true);
+        const pushP = getPushEndpoint();   // 알림 허락 창은 버튼 누를 때 바로 띄움
+        const hint = await durationFromPlayer(id, 8000);
+        const push = await pushP;
+        updateMsg('쫑이한테 일 맡기는 중… 📨');
+        const r = await server('startJob', 30000, id, opts, email, hint, API_URL, PW, push);
+        JOB = { jobId: r.jobId, videoUrl, opts, email, push: !!push, created: Date.now() };
+        jobSave();
+        updateMsg('서버가 받았어요! 이제 앱을 꺼도 쫑이는 계속 봐요 📴' +
+          (push ? '\n끝나면 휴대폰 상단 알림으로 알려줄게요 🔔' : '\n⚠️ 알림이 꺼져 있어서 끝나도 알림이 안 가요. 앱을 다시 열면 결과는 볼 수 있어요.'));
+        showPushWarn(!push);
+      }
+
+      // 진행 상황 지켜보기 (앱이 꺼져도 서버는 계속함)
+      let r;
+      for (;;) {
+        r = await server('getJob', 30000, JOB.jobId, PW);
+        if (r.status === 'done') break;
+        if (r.status === 'error') throw new Error('SERVER:' + (r.error || '알 수 없는 문제'));
+        if (r.status === 'missing') throw new Error('SERVER:작업을 찾을 수 없어요 (오래돼서 지워졌을 수 있어요)');
+        const pr = r.progress || {};
+        const pct = pr.total ? ' (' + Math.round(100 * (pr.done || 0) / pr.total) + '%)' : '';
+        updateMsg((r.msg || STAGE_TEXT[r.stage] || '쫑이가 보는 중') + pct + '\n📴 앱을 꺼도 서버에서 계속해요' + (JOB.push ? ' · 끝나면 알림 🔔' : ''));
+        if (r.stage === 'check') cloneState(0, 'verify');
+        if (r.stage === 'merge' || r.stage === 'pdf') { rolesDone(); clonesMerge(); }
+        await sleep(5000);
+      }
+
+      const summary = r.summary;
+      rolesDone(); clonesMerge();
+      if (summary.mode !== 'text') {
         updateMsg('쫑이들 합체! 크레파스로 그림 그리는 중 🖍️');
         await buildArt(summary);
       }
-      updateMsg('결론 다 나왔음. PDF로 말아서 포장하는 중 📦');
-      const pdf = await server('makePdf', 5 * 60 * 1000, forServer(summary), videoUrl, PW);
       clearInterval(timer);
-      renderResult(summary, pdf, videoUrl);
+      lastSave(summary, r.pdf, r.videoUrl);
+      jobClear();
+      renderResult(summary, r.pdf, r.videoUrl);
+      addArtPdfButton(summary, r.videoUrl);
+      showLastLink();
       notifyDone(true, (summary.title ? '「' + summary.title + '」 ' : '') + '결론 나왔어요. 눌러서 확인하세요!');
     } catch (e) {
       clearClones();
-      setStatus(friendlyError(e), true);
-      notifyDone(false, '앱을 열어서 무슨 일인지 확인해 주세요.');
+      const m = (e && e.message) || String(e);
+      if (m === 'NOLINK') {
+        setStatus('음… 이건 유튜브 링크가 아닌 것 같은데? 🤨\n유튜브 앱에서 공유 → 링크 복사 해서 붙여 넣어 줘.', true);
+      } else if (m.indexOf('SERVER:') === 0) {
+        jobClear();
+        setStatus('쫑이가 이 영상은 못 보겠대 🥲\n이유: ' + m.slice(7) + '\n\n· 공개 영상인지 확인해 줘 (비공개·일부 공개는 안 됨)\n· 무료 사용량이 다 됐으면 내일 다시 해 줘', true);
+        notifyDone(false, '앱을 열어서 무슨 일인지 확인해 주세요.');
+      } else {
+        setStatus(friendlyError(e) + (JOB && JOB.jobId ? '\n\n📴 쫑이는 서버에서 계속 보고 있어요. 나중에 앱을 다시 열면 결과를 가져올게요.' : ''), true);
+        if (JOB && JOB.jobId) showResumeCard();
+      }
     } finally {
       jobRunning = false;
       keepAwake(false);
@@ -1575,7 +1741,58 @@
     }
   }
 
-  $('go').addEventListener('click', onGo);
+  // 서버 PDF에는 그림이 표·글로 들어가요 → 앱에서 그림 넣은 PDF로 다시 만들기
+  function addArtPdfButton(summary, videoUrl) {
+    const hasArt = summary.mode !== 'text' && ((summary.illustrations || []).length || (summary.videoVisuals || []).some(b => b.type !== 'table' && b.type !== 'figure') || summary.mode === 'visual');
+    if (!hasArt) return;
+    const box = document.querySelector('#result .done');
+    if (!box) return;
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'artpdf';
+    b.textContent = '🖍️ 그림 넣은 PDF로 다시 만들기';
+    b.onclick = async () => {
+      b.disabled = true; b.textContent = '그림 넣는 중… 🖍️';
+      try {
+        await buildArt(summary);
+        const pdf = await server('makePdf', 5 * 60 * 1000, forServer(summary), videoUrl, PW);
+        lastSave(summary, pdf, videoUrl);
+        renderResult(summary, pdf, videoUrl);
+        const bx = document.querySelector('#result .done');
+        if (bx) { const ok = document.createElement('div'); ok.className = 'muted'; ok.textContent = '✅ 그림 넣은 PDF 완성! 위 버튼으로 열어 보세요'; bx.appendChild(ok); }
+      } catch (e) {
+        b.disabled = false; b.textContent = '다시 시도: 그림 넣은 PDF 만들기';
+      }
+    };
+    box.appendChild(b);
+  }
+
+  /* ---------- 이어보기 카드 / 지난 결과 ---------- */
+
+  function showResumeCard() {
+    const j = jobLoad();
+    if (!j || !j.jobId) { $('resumeCard').style.display = 'none'; return; }
+    $('resumeText').innerHTML = '🐾 <b>쫑이가 서버에서 보고 있는 영상이 있어요</b><br>' + esc(j.videoUrl) +
+      '<br><span class="muted">결과를 가져올게요</span>';
+    $('resumeCard').style.display = 'block';
+  }
+  $('resumeGo').addEventListener('click', () => { const j = jobLoad(); if (j) onGo(j); });
+  $('resumeDrop').addEventListener('click', () => { jobClear(); $('resumeCard').style.display = 'none'; });
+
+  function showLastLink() {
+    const l = lastLoad();
+    $('lastLink').style.display = l && l.summary && l.pdf ? 'inline-block' : 'none';
+  }
+  $('lastLink').addEventListener('click', async e => {
+    e.preventDefault();
+    const l = lastLoad();
+    if (!l) return;
+    if (l.summary.mode !== 'text') await buildArt(l.summary);
+    renderResult(l.summary, l.pdf, l.videoUrl);
+    $('result').scrollIntoView({ behavior: 'smooth' });
+  });
+
+  $('go').addEventListener('click', () => onGo(null));
 
   /* ---------- 페이지 열릴 때 점검 ---------- */
 
@@ -1624,7 +1841,7 @@
     if (res === 'ok') {
       if ($('remember').checked) savePw(pw); else forgetPw();
       $('pwmsg').textContent = '아는 사람이다! 어서 와 🐶💛';
-      setTimeout(hideLock, 700);
+      setTimeout(() => { hideLock(); const pending = jobLoad(); if (pending && pending.jobId) onGo(pending); else showResumeCard(); }, 700);
     } else if (res === 'wrong') {
       $('pwmsg').textContent = WRONG[Math.floor(Math.random() * WRONG.length)];
       $('pw').select();
@@ -1647,8 +1864,12 @@
   window.addEventListener('load', async () => {
     // 저장해 둔 암호(없으면 빈 값)로 먼저 열어 보고, 암호가 필요하면 문지기 쫑이 등장
     const res = await tryUnlock(loadPw());
+    showLastLink();
     if (res === 'ok') {
       hideLock();
+      const pending = jobLoad();
+      if (pending && pending.jobId) onGo(pending);   // 맡겨 둔 일 자동으로 이어보기
+      else showResumeCard();
     } else if (res === 'wrong') {
       forgetPw();
       showLock();
