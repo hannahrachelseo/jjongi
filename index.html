@@ -123,6 +123,15 @@
     .fcs { margin-top: 8px; }
     .preview h3 { border-top: 1.5px dashed #eadccb; padding-top: 14px; font-size: 16px; }
     .preview li { margin: 5px 0; }
+    .items { background: #fff; border: 2px solid #ffb27f; border-radius: 14px; padding: 8px 12px 10px; margin: 10px 0; }
+    .preview .items h3 { border-top: none; padding-top: 0; margin-top: 4px; }
+    .items .miss { font-size: 12.5px; font-weight: 700; color: #c62828; background: #fdecec; border-radius: 8px; padding: 5px 8px; margin-bottom: 6px; }
+    .item { display: flex; gap: 10px; padding: 8px 0; border-top: 1px dashed #f0dcc4; }
+    .item:first-of-type { border-top: none; }
+    .item .no { flex: none; width: 26px; height: 26px; border-radius: 50%; background: #ff7a2f; color: #fff; font-weight: 800; font-size: 13px; display: grid; place-items: center; }
+    .item .nm { font-weight: 800; font-size: 15px; }
+    .item .dt { font-size: 14px; line-height: 1.55; margin-top: 2px; }
+    .preview:not(.showq) .items .quote { display: none; }
     .toc { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 8px; }
     .toc a { font-size: 12px; font-weight: 700; color: #7a4a12; background: #fff1e0; border-radius: 999px; padding: 4px 10px; text-decoration: none; }
     .qtoggle { display: inline-block; width: auto; margin: 0 0 6px; padding: 5px 11px; font-size: 12px; font-weight: 700; border-radius: 999px;
@@ -477,6 +486,31 @@
   /* ---------- 서버 호출 (응답이 없으면 시간 초과로 알려줌) ---------- */
 
   // Apps Script 서버에 일 시키기 — 구글 로그인 정보(쿠키)를 아예 안 보내서 계정 문제 없음
+  // ⚡ 일꾼 직접 돌리기: 한 번에 최대 6분 일하고 돌아오면 바로 다시 부름. 앱을 끄면 서버 예약 실행이 이어받음
+  let PUMP_ID = null;
+  async function startPump(jobId) {
+    if (PUMP_ID === jobId) return;
+    PUMP_ID = jobId;
+    let errs = 0;
+    while (PUMP_ID === jobId && JOB && JOB.jobId === jobId) {
+      if (document.hidden) { await waitVisible(); continue; }
+      let r;
+      try {
+        r = await serverOnce('pump', 7 * 60 * 1000, [jobId, PW]);
+        errs = 0;
+      } catch (e) {
+        if (/PASSWORD/.test((e && e.message) || '')) break;
+        errs++;
+        await sleepOrBack(Math.min(15000, 2000 * errs));
+        continue;
+      }
+      if (!r || r.status !== 'running') break;
+      if (r.waitMs) await sleepOrBack(Math.min(r.waitMs + 500, 120000));   // 사용량 한도로 쉬는 중
+      else if (r.busy) await sleepOrBack(4000);                              // 다른 일꾼이 일하는 중
+    }
+    if (PUMP_ID === jobId) PUMP_ID = null;
+  }
+
   async function server(fn, timeoutMs, ...args) {
     for (let netTries = 0; ; netTries++) {
       try {
@@ -1627,6 +1661,15 @@
       '<td>' + hl(m.text || '') + (m.quote ? '<div class="quote">🗣 "' + esc(m.quote) + '"</div>' : '') + '</td></tr>').join('') + '</table>';
     return h + '<div class="warnline">※ 영상 속 주장을 그대로 옮긴 것이며 투자 권유가 아님. 투자 판단과 책임은 본인에게! 숫자는 [시각]을 눌러 원본으로 꼭 확인하기.</div></div>';
   }
+  // 📋 "N가지" 영상: 항목 한눈에
+  function itemsHtml(it, videoUrl) {
+    if (!it || !it.list || !it.list.length) return '';
+    let h = '<div class="items"><h3>📋 ' + (it.expected ? '영상 속 ' + esc(it.label) + ' 한눈에' : '영상이 소개한 ' + it.list.length + '가지') + '</h3>';
+    if (it.missing && it.missing.length) h += '<div class="miss">⚠️ 제목은 ' + esc(it.label) + '인데 쫑이가 찾은 건 ' + it.list.length + '개예요. 빠졌을 수 있는 번호: ' + it.missing.join(', ') + ' (영상으로 확인해 주세요)</div>';
+    h += it.list.map((x, i) => '<div class="item"><div class="no">' + (i + 1) + '</div><div><div class="nm">' + hl(x.name) + evLink(x.t, videoUrl) + '</div>' +
+      (x.detail ? '<div class="dt">' + hl(x.detail) + '</div>' : '') + (x.quote ? '<div class="quote">🗣 "' + esc(x.quote) + '"</div>' : '') + '</div></div>').join('');
+    return h + '</div>';
+  }
   // 💬 연애·대화법 영상: 사례 카드
   function casesHtml(cases, videoUrl) {
     if (!cases || !cases.length) return '';
@@ -1652,9 +1695,11 @@
     if (a.numberNoQuote) lines.push('영상 속 말(인용)이 없는 숫자·이름 ' + a.numberNoQuote + '개');
     if (a.outOfRange) lines.push('영상 길이를 벗어난 시각 ' + a.outOfRange + '개');
     if (a.investNoQuote) lines.push('영상 속 실제 말이 없는 투자 의견 ' + a.investNoQuote + '개');
+    const mmss = x => (x >= 60 ? Math.floor(x / 60) + '분 ' : '') + (x % 60) + '초';
+    const tm = fc.timing ? '<p>⏱ 걸린 시간 ' + mmss(fc.timing.total) + ' (시작 대기 ' + mmss(fc.timing.wait) + ' · 영상 보기 ' + mmss(fc.timing.watch) + ' · 정리 ' + mmss(fc.timing.finish) + ')</p>' : '';
     const proof = fc.proof && fc.proof.fixed ? '<p>✍️ 맞춤법·오타 ' + fc.proof.fixed + '곳 교정함 (뜻·숫자는 그대로)</p>' : '';
     h += '<div class="fcs"><b>🤖 자동 점검</b>' +
-      (lines.length ? list(lines.map(x => x + ' → ' + UNSURE + ' 표시함')) : '<p>근거 없는 문장 없음 👍</p>') + proof + '</div>';
+      (lines.length ? list(lines.map(x => x + ' → ' + UNSURE + ' 표시함')) : '<p>근거 없는 문장 없음 👍</p>') + proof + tm + '</div>';
     h += '<p class="muted">AI는 그럴듯하게 지어낼 수 있어요(환각). 쫑이는 근거 시각·영상 속 인용·교차 검증으로 줄이지만 0으로 만들 수는 없어요. ' +
       '중요한 내용은 [시각]을 눌러 원본으로 확인하세요.</p>';
     return h + '</div></details>';
@@ -1774,6 +1819,7 @@
     if (s.check && s.check.done) html += '<div class="badge">🔍 쫑이 검증 완료 · ' + (s.check.fixes ? s.check.fixes + '군데 고쳤음' : '고칠 곳 없었음') + '</div>';
     if (s.oneLine) html += '<p class="one"><b>그래서 결론:</b> ' + hl(s.oneLine) + '</p>';
     html += investHtml(s.invest, videoUrl);
+    html += itemsHtml(s.items, videoUrl);
 
     if (s.keyTakeaways.length) {
       html += '<h3>✨ 핵심만 쏙</h3>';
@@ -1938,6 +1984,8 @@
         showPushWarn(!push);
       }
 
+      // 앱이 열려 있는 동안은 앱이 직접 일꾼을 돌림 (구글 예약 실행 기다리지 않게 → 훨씬 빠름)
+      startPump(JOB.jobId);
       // 진행 상황 지켜보기 (앱이 꺼져도 서버는 계속함)
       let r, fails = 0;
       for (;;) {
