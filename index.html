@@ -44,19 +44,29 @@
 
     // 앱 안에 띄워 보기 → 쫑이 페이지가 '잘 떴다' 신호를 보내면 성공
     // 신호가 없으면(구글이 막은 경우) 쫑이 페이지를 직접 열기
+    // 이 휴대폰에서 예전에 막혔으면 기다리지 않고 바로 열기
+    let blockedBefore = false;
+    try { blockedBefore = localStorage.getItem('jjongi_direct') === '1'; } catch (e) {}
+    if (blockedBefore) location.replace(target);
+
     let ready = false;
-    const goDirect = () => { if (!ready) location.replace(target); };
+    const goDirect = () => {
+      if (ready) return;
+      try { localStorage.setItem('jjongi_direct', '1'); } catch (e) {}
+      location.replace(target);
+    };
     window.addEventListener('message', e => {
       if (e.data && e.data.jjongi === 'ready') {
         ready = true;
+        try { localStorage.removeItem('jjongi_direct'); } catch (e2) {}
         const sp = document.getElementById('splash');
         if (sp) { sp.style.opacity = '0'; setTimeout(() => sp.remove(), 400); }
       }
     });
     document.getElementById('app').src = target;
     document.getElementById('direct').href = target;
-    setTimeout(() => { if (!ready) document.getElementById('direct').style.display = 'block'; }, 5000);
-    setTimeout(goDirect, 12000);
+    setTimeout(() => { if (!ready) document.getElementById('direct').style.display = 'block'; }, 4000);
+    setTimeout(goDirect, 8000);
 
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
   </script>
