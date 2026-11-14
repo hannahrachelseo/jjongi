@@ -121,6 +121,26 @@
     .quote { font-size: 12px; color: #7a6552; background: #f6efe6; border-left: 3px solid #e3d5c3; border-radius: 6px; padding: 3px 8px; margin: 3px 0 2px; }
     .fc { background: #f3faf6; border: 1.5px solid #cfe9db; border-radius: 12px; padding: 10px 12px; font-size: 14px; line-height: 1.6; }
     .fcs { margin-top: 8px; }
+    .inv { background: #fffaf2; border: 2px solid #ffcf99; border-radius: 14px; padding: 10px 12px; margin: 10px 0; }
+    .inv h3 { margin-top: 2px; }
+    .inv .iline { font-weight: 800; font-size: 15px; background: #fff1e0; border-radius: 10px; padding: 8px 10px; margin: 6px 0; }
+    .inv h4 { margin: 10px 0 4px; }
+    .inv .cond { font-size: 13px; font-weight: 700; color: #1a4fa0; margin: 2px 0 2px; }
+    .inv .caut li { color: #c62828; font-weight: 700; }
+    .inv .caut { background: #fdecec; border-radius: 10px; padding: 6px 8px 6px 0; }
+    .inv table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .inv th, .inv td { border: 1px solid #f0dcc4; padding: 5px 6px; text-align: left; vertical-align: top; }
+    .inv th { background: #fff1e0; }
+    .view { display: inline-block; font-weight: 800; border-radius: 8px; padding: 1px 7px; background: #eee; color: #555; white-space: nowrap; }
+    .view.buy { background: #fdecec; color: #c62828; } .view.sell { background: #eef4ff; color: #1a4fa0; }
+    .warnline { font-size: 12px; color: #c62828; font-weight: 700; margin-top: 8px; }
+    .case { border: 1.5px solid #eadccb; border-radius: 14px; padding: 10px 12px; margin: 10px 0; background: #fff; }
+    .case .ct { font-weight: 800; font-size: 16px; margin-bottom: 6px; }
+    .case .ct .no { color: #ff7a2f; margin-right: 4px; }
+    .case .row { border-radius: 10px; padding: 6px 9px; margin: 4px 0; font-size: 14px; line-height: 1.55; }
+    .case .row b { display: block; font-size: 12px; margin-bottom: 1px; }
+    .case .sit { background: #f6efe6; } .case .bad { background: #fdecec; } .case .bad b { color: #c62828; }
+    .case .good { background: #e9f7ef; } .case .good b { color: #1f8a52; } .case .why { background: #eef4ff; } .case .why b { color: #1a4fa0; }
     .fc ul { margin: 2px 0; }
     .installbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #2b2118; color: #fff;
                   border-radius: 14px; padding: 10px 12px 10px 14px; font-size: 13px; font-weight: 700; margin-bottom: 10px; }
@@ -1576,6 +1596,32 @@
       (p.quote ? '<div class="quote">🗣 "' + esc(p.quote) + '"</div>' : '') + '</li>').join('') + '</ul>';
   }
 
+  // 💰 재테크 영상: 투자 포인트
+  function investHtml(inv, videoUrl) {
+    if (!inv) return '';
+    const dir = inv.direction || [], cau = inv.cautions || [], men = inv.mentions || [];
+    if (!dir.length && !cau.length && !men.length) return '';
+    let h = '<div class="inv"><h3>💰 투자 포인트 <span class="muted">(영상 속 주장)</span></h3>';
+    if (inv.line) h += '<div class="iline">' + hl(inv.line) + '</div>';
+    if (dir.length) h += '<h4>📈 투자 방향</h4><ul>' + dir.map(p => '<li>' + hl(p.text) + evLink(p.t, videoUrl) +
+      (p.condition ? '<div class="cond">↳ 조건·전제: ' + hl(p.condition) + '</div>' : '') +
+      (p.quote ? '<div class="quote">🗣 "' + esc(p.quote) + '"</div>' : '') + '</li>').join('') + '</ul>';
+    if (cau.length) h += '<h4>⚠️ 유의사항 · 위험 (꼭 읽기)</h4><div class="caut">' + pointsHtml(cau, videoUrl) + '</div>';
+    if (men.length) h += '<h4>🏷️ 언급된 종목·자산</h4><table><tr><th>종목·자산</th><th>의견</th><th>이유</th></tr>' + men.map(m =>
+      '<tr><td><b>' + esc(m.name) + '</b>' + evLink(m.t, videoUrl) + '</td><td><span class="view ' + (m.view === '매수' ? 'buy' : m.view === '매도' ? 'sell' : '') + '">' + esc(m.view) + '</span></td>' +
+      '<td>' + hl(m.text || '') + (m.quote ? '<div class="quote">🗣 "' + esc(m.quote) + '"</div>' : '') + '</td></tr>').join('') + '</table>';
+    return h + '<div class="warnline">※ 영상 속 주장을 그대로 옮긴 것이며 투자 권유가 아님. 투자 판단과 책임은 본인에게! 숫자는 [시각]을 눌러 원본으로 꼭 확인하기.</div></div>';
+  }
+  // 💬 연애·대화법 영상: 사례 카드
+  function casesHtml(cases, videoUrl) {
+    if (!cases || !cases.length) return '';
+    return '<h3>💬 사례로 보는 정리</h3>' + cases.map((c, i) => '<div class="case"><div class="ct"><span class="no">사례 ' + (i + 1) + '.</span>' + hl(c.title) + evLink(c.t, videoUrl) + '</div>' +
+      (c.situation ? '<div class="row sit"><b>📍 상황</b>' + hl(c.situation) + '</div>' : '') +
+      (c.bad ? '<div class="row bad"><b>❌ 이렇게 말하면</b>' + hl(c.bad) + '</div>' : '') +
+      (c.good ? '<div class="row good"><b>⭕ 이렇게 말해 보기</b>' + hl(c.good) + '</div>' : '') +
+      (c.why ? '<div class="row why"><b>💡 왜?</b>' + hl(c.why) + '</div>' : '') + '</div>').join('');
+  }
+
   function factCheckHtml(fc) {
     if (!fc) return '';
     let h = '<h3>🔍 쫑이 팩트체크 리포트</h3><div class="fc">';
@@ -1588,6 +1634,7 @@
     if (a.noEvidence) lines.push('근거 시각이 없는 문장 ' + a.noEvidence + '개');
     if (a.numberNoQuote) lines.push('영상 속 말(인용)이 없는 숫자·이름 ' + a.numberNoQuote + '개');
     if (a.outOfRange) lines.push('영상 길이를 벗어난 시각 ' + a.outOfRange + '개');
+    if (a.investNoQuote) lines.push('영상 속 실제 말이 없는 투자 의견 ' + a.investNoQuote + '개');
     h += '<div class="fcs"><b>🤖 자동 점검</b>' +
       (lines.length ? list(lines.map(x => x + ' → ' + UNSURE + ' 표시함')) : '<p>근거 없는 문장 없음 👍</p>') + '</div>';
     h += '<p class="muted">AI는 그럴듯하게 지어낼 수 있어요(환각). 쫑이는 근거 시각·영상 속 인용·교차 검증으로 줄이지만 0으로 만들 수는 없어요. ' +
@@ -1708,11 +1755,13 @@
     if (s.channel) html += '<div class="muted">' + esc(s.channel) + '</div>';
     if (s.check && s.check.done) html += '<div class="badge">🔍 쫑이 검증 완료 · ' + (s.check.fixes ? s.check.fixes + '군데 고쳤음' : '고칠 곳 없었음') + '</div>';
     if (s.oneLine) html += '<p class="one"><b>그래서 결론:</b> ' + hl(s.oneLine) + '</p>';
+    html += investHtml(s.invest, videoUrl);
 
     if (s.keyTakeaways.length) {
       html += '<h3>핵심만 쏙</h3>';
       html += (s.mode === 'visual' && s.pointsBlock && s.pointsBlock._svg) ? '<div class="art">' + s.pointsBlock._svg + '</div>' : pointsHtml(s.keyTakeaways, videoUrl);
     }
+    html += casesHtml(s.cases, videoUrl);
     if (s.mode !== 'text' && s.illustrations.length) {
       html += '<h3>그림으로 한눈에</h3>' + s.illustrations.map(b => blockHtml(b, videoUrl, false)).join('');
     }
