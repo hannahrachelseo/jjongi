@@ -1,0 +1,22 @@
+{
+  "name": "한나T의 그래서 결론이 뭔데",
+  "short_name": "쫑이",
+  "description": "유튜브 링크만 던지면 쫑이가 대신 보고 결론만 PDF로 물어다 줌",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fff8ee",
+  "theme_color": "#ff7a2f",
+  "lang": "ko",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "share_target": {
+    "action": "./",
+    "method": "GET",
+    "params": { "title": "title", "text": "text", "url": "url" }
+  }
+}
