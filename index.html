@@ -125,6 +125,7 @@
     .installbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #2b2118; color: #fff;
                   border-radius: 14px; padding: 10px 12px 10px 14px; font-size: 13px; font-weight: 700; margin-bottom: 10px; }
     .installbar button { width: auto; margin: 0; padding: 8px 14px; font-size: 14px; border-radius: 10px; box-shadow: none; flex: none; }
+    #status .tip { display: inline-block; margin-top: 6px; font-size: 12px; color: #7a6552; }
     footer { text-align: center; font-size: 12px; color: #b09a85; margin-top: 18px; }
   </style>
 </head>
@@ -308,7 +309,8 @@
         const sec = Math.floor((Date.now() - jobStart) / 1000);
         const fun = FUN[funOrder[Math.floor(sec / 5) % funOrder.length]];
         el.innerHTML = '<span class="fun">' + esc(fun) + '</span>\n' + esc(curMsg) +
-          '\n경과: ' + Math.floor(sec / 60) + '분 ' + (sec % 60) + '초';
+          '\n경과: ' + Math.floor(sec / 60) + '분 ' + (sec % 60) + '초' +
+          '\n<span class="tip">💡 화면은 안 꺼지게 해 뒀어요. 잠깐 딴 앱 갔다 와도 돌아오면 이어서 해요 · 끝나면 알림 🔔</span>';
       };
       draw();
       timer = setInterval(draw, 1000);
@@ -402,6 +404,16 @@
 
   // Apps Script 서버에 일 시키기 — 구글 로그인 정보(쿠키)를 아예 안 보내서 계정 문제 없음
   async function server(fn, timeoutMs, ...args) {
+    for (let netTries = 0; ; netTries++) {
+      try {
+        return await serverOnce(fn, timeoutMs, args);
+      } catch (e) {
+        if (isNetErr(e) && netTries < 3 && jobRunning) { await pauseUntilBack(); continue; }
+        throw e;
+      }
+    }
+  }
+  async function serverOnce(fn, timeoutMs, args) {
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), timeoutMs);
     try {
@@ -426,6 +438,76 @@
     } finally {
       clearTimeout(t);
     }
+  }
+
+  /* ---------- 다른 앱 갔다 와도 이어서 + 화면 켜두기 + 완료 알림 ---------- */
+
+  let jobRunning = false, wakeLock = null, wasAway = false;
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const isNetErr = e => e instanceof TypeError || /Failed to fetch|NetworkError|Load failed|network/i.test((e && e.message) || '');
+
+  function waitVisible() {
+    if (!document.hidden) return Promise.resolve();
+    return new Promise(res => {
+      const h = () => { if (!document.hidden) { document.removeEventListener('visibilitychange', h); res(); } };
+      document.addEventListener('visibilitychange', h);
+    });
+  }
+  // 끊겼을 때: 앱 밖이면 돌아올 때까지 기다리고, 앱 안이면 잠깐 쉬었다가 다시
+  async function pauseUntilBack() {
+    if (document.hidden) {
+      wasAway = true;
+      await waitVisible();
+      updateMsg('다시 왔네! 끊긴 부분부터 이어서 하는 중 🐾');
+      await sleep(700);
+    } else {
+      updateMsg('인터넷이 잠깐 끊겼어요. 다시 연결하는 중… 📶');
+      await sleep(3000);
+    }
+  }
+
+  // 요약하는 동안 화면이 저절로 꺼지지 않게
+  async function keepAwake(on) {
+    try {
+      if (on) {
+        if ('wakeLock' in navigator && !wakeLock) {
+          wakeLock = await navigator.wakeLock.request('screen');
+          wakeLock.addEventListener('release', () => { wakeLock = null; });
+        }
+      } else if (wakeLock) {
+        await wakeLock.release();
+        wakeLock = null;
+      }
+    } catch (e) {}
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && jobRunning) keepAwake(true);   // 돌아오면 다시 켜두기
+    if (!document.hidden && !jobRunning) document.title = '대신봐쫑';
+  });
+
+  // 완료 알림 허락 받기 (버튼 누를 때 한 번만 물어봄)
+  function askNotifyPermission() {
+    try {
+      if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
+    } catch (e) {}
+  }
+
+  async function notifyDone(ok, text) {
+    document.title = ok ? '✅ 쫑이가 다 봤어요!' : '⚠️ 쫑이가 멈췄어요';
+    try { if (navigator.vibrate) navigator.vibrate(ok ? [200, 100, 200] : [500]); } catch (e) {}
+    if (!('Notification' in window) || Notification.permission !== 'granted' || !('serviceWorker' in navigator)) return;
+    try {
+      const reg = await Promise.race([navigator.serviceWorker.ready, sleep(3000).then(() => null)]);
+      if (!reg) return;
+      await reg.showNotification(ok ? '🐶 쫑이가 다 봤어요!' : '🐶 쫑이가 멈췄어요', {
+        body: text,
+        icon: 'icon-192.png',
+        badge: 'icon-192.png',
+        tag: 'jjongi',
+        renotify: true,
+        vibrate: [200, 100, 200]
+      });
+    } catch (e) {}
   }
 
   /* ---------- 유튜브 링크 / 시간 ---------- */
@@ -682,13 +764,17 @@
     let lastErr;
     for (const model of (models || MODELS)) {
       const opt = Object.assign({}, SPEED[speed] || SPEED.fast);
-      for (let attempt = 0; attempt < 4; attempt++) {
+      let tries = 0, netTries = 0;
+      while (tries < 4) {
         try {
           const r = await callGemini(model, req, opt);
           if (r && typeof r === 'object') r.__model = model;  // 실제로 답한 모델 기록
           return r;
         } catch (e) {
           lastErr = e;
+          // 다른 앱 갔다 와서 끊긴 거면: 돌아올 때까지 기다렸다가 같은 요청 다시 (끝난 부분은 그대로)
+          if (isNetErr(e) && netTries < 4) { netTries++; await pauseUntilBack(); continue; }
+          tries++;
           if (dropRejectedOption(e, opt)) continue;
           break;
         }
@@ -1450,6 +1536,9 @@
 
     btn.disabled = true;
     btn.textContent = '쫑이가 보는 중… 🐾';
+    askNotifyPermission();
+    jobRunning = true; wasAway = false;
+    keepAwake(true);
     $('result').innerHTML = '';
     jobStart = 0;
     setStatus('링크 받았음! 쫑이 분신술 준비 중 📏', false, true);
@@ -1471,10 +1560,14 @@
       const pdf = await server('makePdf', 5 * 60 * 1000, forServer(summary), videoUrl, PW);
       clearInterval(timer);
       renderResult(summary, pdf, videoUrl);
+      notifyDone(true, (summary.title ? '「' + summary.title + '」 ' : '') + '결론 나왔어요. 눌러서 확인하세요!');
     } catch (e) {
       clearClones();
       setStatus(friendlyError(e), true);
+      notifyDone(false, '앱을 열어서 무슨 일인지 확인해 주세요.');
     } finally {
+      jobRunning = false;
+      keepAwake(false);
       clearInterval(timer);
       jobStart = 0;
       btn.disabled = false;
