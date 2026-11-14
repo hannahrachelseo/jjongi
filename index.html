@@ -121,8 +121,23 @@
     .quote { font-size: 12px; color: #7a6552; background: #f6efe6; border-left: 3px solid #e3d5c3; border-radius: 6px; padding: 3px 8px; margin: 3px 0 2px; }
     .fc { background: #f3faf6; border: 1.5px solid #cfe9db; border-radius: 12px; padding: 10px 12px; font-size: 14px; line-height: 1.6; }
     .fcs { margin-top: 8px; }
+    .preview h3 { border-top: 1.5px dashed #eadccb; padding-top: 14px; font-size: 16px; }
+    .preview li { margin: 5px 0; }
+    .toc { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 8px; }
+    .toc a { font-size: 12px; font-weight: 700; color: #7a4a12; background: #fff1e0; border-radius: 999px; padding: 4px 10px; text-decoration: none; }
+    .qtoggle { display: inline-block; width: auto; margin: 0 0 6px; padding: 5px 11px; font-size: 12px; font-weight: 700; border-radius: 999px;
+               background: #f6efe6; color: #7a6552; box-shadow: none; border: 1px solid #e3d5c3; }
+    .preview:not(.showq) .topic .quote, .preview:not(.showq) .keys .quote { display: none; }
+    .topic { border: 1.5px solid #eadccb; border-radius: 14px; padding: 10px 12px 6px; margin: 10px 0; background: #fff; scroll-margin-top: 10px; }
+    .topic .th { font-weight: 800; font-size: 15px; display: flex; align-items: baseline; gap: 6px; }
+    .topic .tn { flex: none; display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: #ff7a2f; color: #fff; font-size: 12px; }
+    .topic .th .tt { font-size: 12px; font-weight: 700; color: #1a73e8; text-decoration: none; margin-left: auto; white-space: nowrap; }
+    .topic .gist { font-size: 13.5px; font-weight: 700; color: #7a4a12; background: #fff7ec; border-radius: 8px; padding: 5px 8px; margin: 6px 0 2px; }
+    .keys li { font-weight: 600; }
+    details.fcwrap > summary { cursor: pointer; font-weight: 800; color: #1f8a52; font-size: 14px; padding: 8px 0; list-style: none; }
+    details.fcwrap > summary::-webkit-details-marker { display: none; }
     .inv { background: #fffaf2; border: 2px solid #ffcf99; border-radius: 14px; padding: 10px 12px; margin: 10px 0; }
-    .inv h3 { margin-top: 2px; }
+    .preview .inv h3 { margin-top: 2px; border-top: none; padding-top: 0; }
     .inv .iline { font-weight: 800; font-size: 15px; background: #fff1e0; border-radius: 10px; padding: 8px 10px; margin: 6px 0; }
     .inv h4 { margin: 10px 0 4px; }
     .inv .cond { font-size: 13px; font-weight: 700; color: #1a4fa0; margin: 2px 0 2px; }
@@ -1624,7 +1639,9 @@
 
   function factCheckHtml(fc) {
     if (!fc) return '';
-    let h = '<h3>🔍 쫑이 팩트체크 리포트</h3><div class="fc">';
+    const nUnsure = (fc.unsure || []).length;
+    let h = '<details class="fcwrap"><summary>🔍 쫑이 팩트체크 리포트 · ' + (fc.checked ? '고친 곳 ' + (fc.fixes || 0) + '군데' : '검증 없음') +
+      (nUnsure ? ' · 헷갈림 ' + nUnsure + '개' : '') + ' <span class="muted">(눌러서 보기)</span></summary><div class="fc">';
     h += '<div><b>검증 방식:</b> ' + esc(fc.method) + '</div>';
     if (fc.checked) h += '<div><b>고친 곳:</b> ' + fc.fixes + '군데</div>';
     const part = (title, a) => a && a.length ? '<div class="fcs"><b>' + title + '</b>' + list(a) + '</div>' : '';
@@ -1635,11 +1652,12 @@
     if (a.numberNoQuote) lines.push('영상 속 말(인용)이 없는 숫자·이름 ' + a.numberNoQuote + '개');
     if (a.outOfRange) lines.push('영상 길이를 벗어난 시각 ' + a.outOfRange + '개');
     if (a.investNoQuote) lines.push('영상 속 실제 말이 없는 투자 의견 ' + a.investNoQuote + '개');
+    const proof = fc.proof && fc.proof.fixed ? '<p>✍️ 맞춤법·오타 ' + fc.proof.fixed + '곳 교정함 (뜻·숫자는 그대로)</p>' : '';
     h += '<div class="fcs"><b>🤖 자동 점검</b>' +
-      (lines.length ? list(lines.map(x => x + ' → ' + UNSURE + ' 표시함')) : '<p>근거 없는 문장 없음 👍</p>') + '</div>';
+      (lines.length ? list(lines.map(x => x + ' → ' + UNSURE + ' 표시함')) : '<p>근거 없는 문장 없음 👍</p>') + proof + '</div>';
     h += '<p class="muted">AI는 그럴듯하게 지어낼 수 있어요(환각). 쫑이는 근거 시각·영상 속 인용·교차 검증으로 줄이지만 0으로 만들 수는 없어요. ' +
       '중요한 내용은 [시각]을 눌러 원본으로 확인하세요.</p>';
-    return h + '</div>';
+    return h + '</div></details>';
   }
 
   /* ---------- PDF: 휴대폰에 바로 저장 (앱 안에도 보관) ---------- */
@@ -1758,32 +1776,35 @@
     html += investHtml(s.invest, videoUrl);
 
     if (s.keyTakeaways.length) {
-      html += '<h3>핵심만 쏙</h3>';
-      html += (s.mode === 'visual' && s.pointsBlock && s.pointsBlock._svg) ? '<div class="art">' + s.pointsBlock._svg + '</div>' : pointsHtml(s.keyTakeaways, videoUrl);
+      html += '<h3>✨ 핵심만 쏙</h3>';
+      html += (s.mode === 'visual' && s.pointsBlock && s.pointsBlock._svg) ? '<div class="art">' + s.pointsBlock._svg + '</div>' : '<div class="keys">' + pointsHtml(s.keyTakeaways, videoUrl) + '</div>';
     }
     html += casesHtml(s.cases, videoUrl);
     if (s.mode !== 'text' && s.illustrations.length) {
-      html += '<h3>그림으로 한눈에</h3>' + s.illustrations.map(b => blockHtml(b, videoUrl, false)).join('');
+      html += '<h3>🖼️ 그림으로 한눈에</h3>' + s.illustrations.map(b => blockHtml(b, videoUrl, false)).join('');
     }
     if (s.sections.length) {
       if (s.mode === 'visual') {
-        html += '<h3>영상 흐름</h3>';
+        html += '<h3>📚 영상 흐름</h3>';
         if (s.timelineBlock && s.timelineBlock._svg) html += '<div class="art">' + s.timelineBlock._svg + '</div>';
         html += '<div class="jumps">' + s.sections.map(sec => {
           const t = toSec(sec.timestamp);
           return t == null ? '' : '<a target="_blank" rel="noopener" href="' + esc(videoUrl + '&t=' + t + 's') + '">' + esc(sec.timestamp) + '</a>';
         }).join('') + '</div>';
       } else {
-        html += '<h3>내용 정리</h3>';
-        s.sections.forEach(sec => {
+        html += '<h3>📚 내용 정리</h3>';
+        if (s.sections.length > 2) html += '<div class="toc">' + s.sections.map((sec, i) => '<a href="#topic' + i + '" onclick="document.getElementById(\'topic' + i + '\').scrollIntoView({behavior:\'smooth\'});return false;">' + (i + 1) + '. ' + esc(String(sec.heading || '').replace(UNSURE, '')) + '</a>').join('') + '</div>';
+        html += '<button type="button" class="qtoggle" onclick="const p=this.closest(\'.preview\');p.classList.toggle(\'showq\');this.textContent=p.classList.contains(\'showq\')?\'🗣 근거(영상 속 말) 숨기기\':\'🗣 근거(영상 속 말) 같이 보기\'">🗣 근거(영상 속 말) 같이 보기</button>';
+        s.sections.forEach((sec, i) => {
           const t = toSec(sec.timestamp);
-          const ts = sec.timestamp ? (t != null ? '<a target="_blank" rel="noopener" href="' + esc(videoUrl + '&t=' + t + 's') + '">[' + esc(sec.timestamp) + ']</a> ' : '[' + esc(sec.timestamp) + '] ') : '';
-          html += '<h4>' + ts + hl(sec.heading) + '</h4>' + pointsHtml(sec.points, videoUrl);
+          const ts = sec.timestamp ? (t != null ? '<a class="tt" target="_blank" rel="noopener" href="' + esc(videoUrl + '&t=' + t + 's') + '">▶ ' + esc(sec.timestamp) + '~</a>' : '') : '';
+          html += '<div class="topic" id="topic' + i + '"><div class="th"><span class="tn">' + (i + 1) + '</span><span>' + hl(sec.heading) + '</span>' + ts + '</div>' +
+            (sec.gist ? '<div class="gist">' + hl(sec.gist) + '</div>' : '') + pointsHtml(sec.points, videoUrl) + '</div>';
         });
       }
     }
     if (s.mode !== 'text' && s.videoVisuals.length) {
-      html += '<h3>영상 화면 속 표·그래프·그림</h3><p class="muted">영상에 나온 자료를 쫑이가 옮겨 그렸어요. 원본은 링크를 누르면 그 장면으로 가요.</p>' +
+      html += '<h3>📺 영상 화면 속 표·그래프·그림</h3><p class="muted">영상에 나온 자료를 쫑이가 옮겨 그렸어요. 원본은 링크를 누르면 그 장면으로 가요.</p>' +
         s.videoVisuals.map(b => blockHtml(b, videoUrl, true)).join('');
     } else if (s.visualNotes.length) {
       html += '<h3>화면에만 나온 정보</h3>' + list(s.visualNotes);
@@ -1939,7 +1960,7 @@
         const pct = pr.total ? ' (' + Math.round(100 * (pr.done || 0) / pr.total) + '%)' : '';
         updateMsg((r.msg || STAGE_TEXT[r.stage] || '쫑이가 보는 중') + pct + '\n📴 앱을 꺼도 서버에서 계속해요' + (JOB.push ? ' · 끝나면 알림 🔔' : ''));
         if (r.stage === 'check') cloneState(0, 'verify');
-        if (r.stage === 'merge' || r.stage === 'pdf') { rolesDone(); clonesMerge(); }
+        if (r.stage === 'merge' || r.stage === 'proof' || r.stage === 'pdf') { rolesDone(); clonesMerge(); }
         await sleepOrBack(5000);   // 5초마다, 또는 앱으로 돌아오는 즉시 다시 확인
       }
 
