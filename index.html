@@ -225,6 +225,47 @@
     .hone { font-size: 12px; color: #7a6552; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
     .hdel { width: auto; margin: 0; padding: 6px 8px; background: transparent; box-shadow: none; font-size: 16px; flex: none; }
     footer { text-align: center; font-size: 12px; color: #b09a85; margin-top: 18px; }
+    /* 🩺 의료 · 💰 경제 탭 */
+    .tabs3 { display: flex; gap: 4px; background: #f6efe6; border-radius: 14px; padding: 4px; margin-bottom: 12px; }
+    .tabs3 button { flex: 1; width: auto; margin: 0; padding: 10px 2px; font-size: 14px; border-radius: 11px; background: transparent;
+                    color: #7a6552; box-shadow: none; border: 0; letter-spacing: -0.4px; }
+    .tabs3 button.on { background: #fff; color: #ff5a1f; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+    .tabs3 button:active { transform: none; box-shadow: none; }
+    .tabhint { font-size: 12px; color: #7a6552; background: #fff7ec; border-radius: 10px; padding: 7px 9px; margin: -4px 0 4px; line-height: 1.55; }
+    .tabbadge { display: inline-block; font-size: 12px; font-weight: 800; border-radius: 999px; padding: 4px 10px; margin: 6px 4px 2px 0; background: #ffe9d9; color: #c25a00; }
+    .cnt2 { font-size: 11px; font-weight: 700; color: #7a6552; background: #f3ebe1; border-radius: 999px; padding: 2px 8px; margin-left: 4px; vertical-align: 2px; }
+    .flowl { margin: 8px 0 4px; }
+    .flowl .fr { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-weight: 700; font-size: 14px; }
+    .flowl .fr i { flex: none; width: 22px; height: 22px; border-radius: 50%; background: #ff7a2f; color: #fff; font-style: normal; font-size: 12px; font-weight: 800; display: grid; place-items: center; }
+    .flowl .fr span { flex: 1; }
+    .core .ci { display: flex; gap: 10px; padding: 9px 0; border-top: 1px dashed #f0dcc4; }
+    .core .ci:first-child { border-top: none; }
+    .core .ci .no { flex: none; width: 24px; height: 24px; border-radius: 50%; background: #ffe9d9; color: #ff5a1f; font-weight: 800; font-size: 12px; display: grid; place-items: center; margin-top: 1px; }
+    .core .cb { flex: 1; min-width: 0; font-size: 14.5px; line-height: 1.6; }
+    .kind { display: inline-block; font-size: 11px; font-weight: 800; border-radius: 6px; padding: 1px 6px; margin-right: 4px; vertical-align: 1px; }
+    .kind.kf { background: #e3f6ec; color: #1f8a52; } .kind.kp { background: #eef4ff; color: #1a4fa0; } .kind.ko { background: #fff1e0; color: #c25a00; }
+    .legend { font-size: 12px; color: #7a6552; margin: 2px 0 6px; line-height: 1.9; }
+    .easy { font-size: 13px; color: #7a4a12; background: #fff7ec; border-radius: 8px; padding: 5px 8px; margin-top: 4px; }
+    .warnbox { background: #fdecec; border: 1.5px solid #f4a6a6; border-radius: 14px; padding: 8px 12px; margin: 12px 0; }
+    .preview .warnbox h3 { border-top: none; padding-top: 0; margin-top: 4px; color: #c62828; }
+    .warnbox li { color: #c62828; font-weight: 700; }
+    .scenes .scene { padding: 8px 0; border-top: 1px dashed #f0dcc4; font-size: 14px; line-height: 1.55; }
+    .scenes .scene:first-child { border-top: none; }
+    .scene .playbtn { display: inline-block; width: auto; margin: 6px 0 0; padding: 6px 10px; font-size: 12px; border-radius: 8px; background: #f6efe6; color: #7a6552; box-shadow: none; border: 1px solid #e3d5c3; }
+    .scene iframe { width: 100%; aspect-ratio: 16/9; border: 0; border-radius: 10px; margin-top: 6px; display: block; }
+    details.fold { border: 1.5px solid #eadccb; border-radius: 14px; margin: 10px 0; background: #fff; }
+    details.fold > summary { padding: 12px 14px; font-weight: 800; font-size: 15px; cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+    details.fold > summary::-webkit-details-marker { display: none; }
+    details.fold > summary .arr::after { content: '펼치기 ▸'; font-size: 12px; color: #ff7a2f; white-space: nowrap; }
+    details.fold[open] > summary .arr::after { content: '접기 ▾'; }
+    details.fold[open] > summary { border-bottom: 1px dashed #f0dcc4; }
+    .fold .fb { padding: 4px 12px 10px; }
+    .nrow { font-size: 14px; line-height: 1.55; padding: 7px 0; border-top: 1px dashed #f0dcc4; }
+    .nrow:first-child { border-top: none; }
+    .basis { font-size: 13px; font-weight: 700; color: #1a4fa0; background: #eef4ff; border-radius: 10px; padding: 7px 10px; margin: 8px 0; line-height: 1.5; }
+    .basis span { font-weight: 500; }
+    .preview:not(.showq) .core .quote, .preview:not(.showq) .fold .quote { display: none; }
+    .preview:not(.showq) .core .quote.qno, .preview:not(.showq) .fold .quote.qno { display: block; }
   </style>
 </head>
 <body>
@@ -263,6 +304,12 @@
   </div>
 
   <div class="card">
+    <div class="tabs3" id="tabs">
+      <button type="button" data-t="general" class="on">📺 일반</button>
+      <button type="button" data-t="med">🩺 의료 영상</button>
+      <button type="button" data-t="econ">💰 경제 영상</button>
+    </div>
+    <div class="tabhint" id="tabHint" style="display:none"></div>
     <label for="url">유튜브 링크 던지는 곳</label>
     <input id="url" type="url" inputmode="url" placeholder="https://youtu.be/..." autocomplete="off">
 
@@ -272,6 +319,15 @@
       <option value="normal" selected>적당히 (보통)</option>
       <option value="long">TMI 대환영 (자세히)</option>
     </select>
+
+    <div id="econOpts" style="display:none">
+      <label for="easy">얼마나 쉽게 말해줄까?</label>
+      <select id="easy">
+        <option value="easy" selected>아주 쉽게 (중학생도 이해)</option>
+        <option value="normal">보통 (용어는 쓰되 뜻을 같이)</option>
+        <option value="expert">전문가처럼 (용어 그대로)</option>
+      </select>
+    </div>
 
     <label for="mode">어떤 모양으로 받을까?</label>
     <select id="mode">
@@ -368,6 +424,26 @@
   const list = a => Array.isArray(a) && a.length ? '<ul>' + a.filter(Boolean).map(x => '<li>' + hl(x) + '</li>').join('') + '</ul>' : '';
   const str = v => (v == null ? '' : String(v)).trim();
   const arr = v => Array.isArray(v) ? v : [];
+
+  /* ---------- 🩺 의료 · 💰 경제 탭 ---------- */
+  const TAB_KEY = 'jjongi_tab';
+  const TAB_HINT = {
+    med: '🩺 <b>전체 흐름 → 핵심 포인트(개수 제한 없음) → 주의할 점 → 핵심 장면</b>을 먼저 보여주고, 구간별 자세한 내용·수치·용어는 펼쳐서 봐요.<br>' +
+         '"얼마나 말해줄까?"는 펼쳐 보는 구간별 내용 분량만 바꿔요. 화면 속 표·영상 소견까지 보려면 "어떻게 볼까?"를 <b>꼼꼼하게</b>로 해 주세요.',
+    econ: '💰 <b>핵심(쉬운 말, 사실·전망·의견 구분) → 구간별 자세한 내용(펼치기) → 투자 의견·종목 추천</b> 순서로 보여줘요.<br>' +
+          '"얼마나 말해줄까?"는 펼쳐 보는 구간별 내용 분량만 바꿔요. 화면 속 표·그래프까지 보려면 "어떻게 볼까?"를 <b>꼼꼼하게</b>로 해 주세요.'
+  };
+  let TAB = 'general';
+  function setTab(t) {
+    TAB = (t === 'med' || t === 'econ') ? t : 'general';
+    document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === TAB));
+    $('econOpts').style.display = TAB === 'econ' ? 'block' : 'none';
+    $('tabHint').innerHTML = TAB_HINT[TAB] || '';
+    $('tabHint').style.display = TAB_HINT[TAB] ? 'block' : 'none';
+    try { localStorage.setItem(TAB_KEY, TAB); } catch (e) {}
+  }
+  $('tabs').addEventListener('click', e => { const b = e.target.closest('[data-t]'); if (b) setTab(b.dataset.t); });
+  try { setTab(localStorage.getItem(TAB_KEY) || 'general'); } catch (e) { setTab('general'); }
 
   /* ---------- 기다리는 동안 멘트 ---------- */
 
@@ -620,7 +696,7 @@
   function histAdd(summary, videoUrl, pdf) {
     const list = histLoad();
     const item = { id: 'h' + Date.now().toString(36), at: Date.now(), title: summary.title || '', channel: summary.channel || '',
-                   oneLine: summary.oneLine || '', videoUrl, summary, pdf: pdf || null };
+                   oneLine: summary.oneLine || summary.overview || '', tab: summary.tab || '', videoUrl, summary, pdf: pdf || null };
     list.unshift(item);
     histWrite(list.slice(0, HIST_MAX));
     try { notesAddFrom(item); } catch (e) {}
@@ -1677,8 +1753,9 @@
     if (s.mode !== 'text') {
       s.illustrations.forEach(b => add(b, drawBlock(b, false)));
       s.videoVisuals.forEach(b => add(b, drawBlock(b, true)));
+      arr(s.core).forEach(c => { if (c && c.visual) add(c.visual, drawBlock(c.visual, c.visual.src !== '정리')); });
     }
-    if (s.mode === 'visual') {
+    if (s.mode === 'visual' && !s.tab) {
       if (s.keyTakeaways.length) { s.pointsBlock = { type: 'points' }; add(s.pointsBlock, drawPoints(s.keyTakeaways.map(k => k.text), '')); }
       if (s.sections.length) { s.timelineBlock = { type: 'timeline' }; add(s.timelineBlock, drawTimeline(s.sections, '')); }
     }
@@ -1738,11 +1815,11 @@
   }
 
   // 💰 재테크 영상: 투자 포인트
-  function investHtml(inv, videoUrl) {
+  function investHtml(inv, videoUrl, title) {
     if (!inv) return '';
     const dir = inv.direction || [], cau = inv.cautions || [], men = inv.mentions || [];
     if (!dir.length && !cau.length && !men.length) return '';
-    let h = '<div class="inv"><h3>💰 투자 포인트 <span class="muted">(영상 속 주장)</span></h3>';
+    let h = '<div class="inv"><h3>' + (title || '💰 투자 포인트') + ' <span class="muted">(영상 속 주장)</span></h3>';
     if (inv.line) h += '<div class="iline">' + hl(inv.line) + '</div>';
     if (dir.length) h += '<h4>📈 투자 방향</h4><ul>' + dir.map(p => '<li>' + hl(p.text) + evLink(p.t, videoUrl) +
       (p.condition ? '<div class="cond">↳ 조건·전제: ' + hl(p.condition) + '</div>' : '') +
@@ -1901,6 +1978,85 @@
     }
   }
 
+  /* ---------- 🩺 의료 · 💰 경제 탭 결과 화면 ---------- */
+  const QTOGGLE = '<button type="button" class="qtoggle" onclick="const p=this.closest(\'.preview\');p.classList.toggle(\'showq\');this.textContent=p.classList.contains(\'showq\')?\'🗣 근거(영상 속 말) 숨기기\':\'🗣 근거(영상 속 말) 같이 보기\'">🗣 근거(영상 속 말) 같이 보기</button>';
+  const KIND_CLS = { '사실': 'kf', '전망': 'kp', '의견': 'ko' };
+  const rangeLab = (a, b) => { a = str(a); b = str(b); return a ? (b ? a + '~' + b : a + '~') : ''; };
+  function rangeLink(a, b, url) {
+    const sec = toSec(a);
+    return sec == null ? '' : ' <a class="ev" target="_blank" rel="noopener" href="' + esc(url + '&t=' + sec + 's') + '">[' + esc(rangeLab(a, b)) + ']</a>';
+  }
+  function foldHtml(title, cnt, inner) {
+    return '<details class="fold"><summary><span>' + title + (cnt ? ' <span class="cnt2">' + esc(cnt) + '</span>' : '') +
+      '</span><span class="arr"></span></summary><div class="fb">' + inner + '</div></details>';
+  }
+  function coreHtml(core, url, withKind) {
+    return '<div class="core">' + core.map((c, i) => '<div class="ci"><div class="no">' + (i + 1) + '</div><div class="cb">' +
+      (withKind && KIND_CLS[c.kind] ? '<span class="kind ' + KIND_CLS[c.kind] + '">' + esc(c.kind) + '</span>' : '') +
+      hl(c.text) + rangeLink(c.start, c.end, url) + qHtml(c) +
+      (c.easy ? '<div class="easy">💡 쉽게 말하면: ' + hl(c.easy) + '</div>' : '') +
+      (c.visual ? blockHtml(c.visual, url, c.visual.src !== '정리') : '') + '</div></div>').join('') + '</div>';
+  }
+  function sectionsFold(sections, url) {
+    const inner = sections.map((sec, i) => {
+      const t = toSec(sec.timestamp);
+      return '<div class="topic"><div class="th"><span class="tn">' + (i + 1) + '</span><span>' + hl(sec.heading) + '</span>' +
+        (t != null ? '<a class="tt" target="_blank" rel="noopener" href="' + esc(url + '&t=' + t + 's') + '">▶ ' + esc(rangeLab(sec.timestamp, sec.end)) + '</a>' : '') +
+        '</div>' + (sec.gist ? '<div class="gist">' + hl(sec.gist) + '</div>' : '') + pointsHtml(sec.points, url) + '</div>';
+    }).join('');
+    return foldHtml('⏱ 구간별 자세한 내용', sections.length + '개 구간', inner);
+  }
+  function predsHtml(preds, url) {
+    if (!preds || !preds.length) return '';
+    return '<h3>🎯 이 영상의 전망</h3><p class="muted">시간이 지나면 📒 내 노트 → 🎯 전망 채점판에서 맞았는지 체크해 보세요.</p><ul>' +
+      preds.map(p => '<li>' + (p.target ? '<b>[' + esc(p.target) + ']</b> ' : '') + hl(p.claim) + (p.by ? ' <span class="muted">(기한: ' + esc(p.by) + ')</span>' : '') +
+        evLink(p.t, url) + qHtml(p) + '</li>').join('') + '</ul>';
+  }
+  function medHtml(s, url) {
+    let h = '<h3>🧭 전체 흐름 요약</h3>';
+    if (s.overview) h += '<p class="one">' + hl(s.overview) + '</p>';
+    if (arr(s.flow).length) h += '<div class="flowl">' + s.flow.map((f, i) => '<div class="fr"><i>' + (i + 1) + '</i><span>' + hl(f.step) + '</span>' + rangeLink(f.start, f.end, url) + '</div>').join('') + '</div>';
+    if (arr(s.core).length) h += '<h3>✅ 핵심 포인트 <span class="cnt2">' + s.core.length + '개</span></h3>' + QTOGGLE + coreHtml(s.core, url, false);
+    if (arr(s.warnings).length) h += '<div class="warnbox"><h3>⚠️ 주의할 점</h3><ul>' + s.warnings.map(w => '<li>' + hl(w.text) + rangeLink(w.start, w.end, url) + qHtml(w) + '</li>').join('') + '</ul></div>';
+    if (arr(s.scenes).length) {
+      const id = videoIdOf(url);
+      h += '<h3>🖼 핵심 장면</h3><div class="scenes">' + s.scenes.map(sc => {
+        const sec = toSec(sc.t);
+        return '<div class="scene">' + (sc.t ? '<b>[' + esc(sc.t) + ']</b> ' : '') + hl(sc.description) +
+          (sec != null && id ? '<br><button type="button" class="playbtn" data-embed="' + esc(id) + '" data-start="' + sec + '">▶ 여기서 장면 보기</button>' : '') + '</div>';
+      }).join('') + '</div>';
+    }
+    if (arr(s.numbers).length) h += foldHtml('📊 영상에 나온 수치·기준', s.numbers.length + '개',
+      s.numbers.map(n => '<div class="nrow">' + (n.item ? hl(n.item) + ': ' : '') + '<b>' + hl(n.value) + '</b>' + evLink(n.t, url) + qHtml(n) + '</div>').join(''));
+    if (arr(s.sections).length) h += sectionsFold(s.sections, url);
+    if (arr(s.glossary).length) h += foldHtml('📖 용어 풀이', s.glossary.length + '개',
+      '<p class="muted">쫑이가 붙인 일반적인 뜻풀이예요 (영상 내용 아님)</p>' + s.glossary.map(g => '<div class="nrow"><b>' + hl(g.term) + '</b> — ' + hl(g.explanation) + '</div>').join(''));
+    return h;
+  }
+  function econHtml(s, url) {
+    let h = '<div class="basis">📅 영상 속 기준 시점: ' + (s.basis ? hl(s.basis) : '영상에서 말하지 않음') + (s.published ? ' · 업로드 ' + esc(s.published) : '') +
+      '<br><span>경제 정보는 시간이 지나면 달라져요. 기준 시점을 꼭 확인하세요.</span></div>';
+    if (arr(s.core).length) h += '<h3>✨ 핵심 <span class="cnt2">' + s.core.length + '개</span></h3>' +
+      '<div class="legend"><span class="kind kf">사실</span>이미 일어난 일·발표된 숫자 &nbsp;<span class="kind kp">전망</span>앞으로의 예측 &nbsp;<span class="kind ko">의견</span>말한 사람의 주장</div>' +
+      QTOGGLE + coreHtml(s.core, url, true);
+    if (arr(s.sections).length) h += sectionsFold(s.sections, url);
+    const inv = investHtml(s.invest, url, '💰 투자 의견 · 종목 추천');
+    const pr = predsHtml(s.predictions, url);
+    h += inv + pr;
+    if (!inv && !pr) h += '<div class="inv"><h3>💰 투자 의견 · 종목 추천</h3><p class="muted">이 영상에는 투자 의견이나 종목 추천이 없어요.</p></div>';
+    return h;
+  }
+  // 핵심 장면: 누르면 그 자리에서 그 시각부터 재생
+  $('result').addEventListener('click', e => {
+    const b = e.target.closest('[data-embed]');
+    if (!b) return;
+    const f = document.createElement('iframe');
+    f.src = 'https://www.youtube.com/embed/' + encodeURIComponent(b.dataset.embed) + '?start=' + b.dataset.start + '&autoplay=1&playsinline=1';
+    f.allow = 'autoplay; encrypted-media; picture-in-picture';
+    f.allowFullscreen = true;
+    b.replaceWith(f);
+  });
+
   function renderResult(s, pdf, videoUrl, histId) {
     CURRENT = { summary: s, videoUrl, histId: histId || null, file: null, oldPdf: pdf && pdf.url ? pdf : null };
     $('statusCard').style.display = 'none';
@@ -1917,6 +2073,10 @@
     if (ftx.used) html += '<span class="txbadge">🧾 자막(대본)을 읽고 요약</span>';
     if (ftx.checked) html += '<span class="txbadge">✅ 인용 ' + ftx.ok + '/' + ftx.checked + ' 자막 확인</span>';
     if (s.check && s.check.done) html += '<div class="badge">🔍 쫑이 검증 완료 · ' + (s.check.fixes ? s.check.fixes + '군데 고쳤음' : '고칠 곳 없었음') + '</div>';
+    if (s.tab === 'med' || s.tab === 'econ') {
+      html += '<span class="tabbadge">' + (s.tab === 'med' ? '🩺 의료 영상' : '💰 경제 영상') + '</span>';
+      html += s.tab === 'med' ? medHtml(s, videoUrl) : econHtml(s, videoUrl);
+    } else {
     if (s.oneLine) html += '<p class="one"><b>그래서 결론:</b> ' + hl(s.oneLine) + '</p>';
     html += investHtml(s.invest, videoUrl);
     html += itemsHtml(s.items, videoUrl);
@@ -1960,6 +2120,7 @@
     } else if (s.visualNotes.length) {
       html += '<h3>화면에만 나온 정보</h3>' + list(s.visualNotes);
     }
+    }   // 일반 탭 끝
     html += factCheckHtml(s.factCheck);
     html += '<p class="muted"><mark>' + esc(UNSURE) + '</mark> = 쫑이도 헷갈린 부분. 원본 영상으로 꼭 확인하기!<br>' +
       '※ 한나T가 쫑이랑 Gemini 시켜서 만든 요약임. 틀리면 Gemini 탓.</p></div>';
@@ -2074,7 +2235,7 @@
         const id = videoIdOf($('url').value);
         if (!id) throw new Error('NOLINK');
         const videoUrl = 'https://www.youtube.com/watch?v=' + id;
-        const opts = { detail: $('detail').value, mode: $('mode').value, speed: $('speed').value, check: $('verify').value };
+        const opts = { detail: $('detail').value, mode: $('mode').value, speed: $('speed').value, check: $('verify').value, tab: TAB, easy: $('easy').value };
         const email = '';   // 메일 알림은 안 씀 (휴대폰 알림만)
         setStatus('링크 받았음! 영상 길이 재는 중 📏', false, true);
         const pushP = getPushEndpoint();   // 알림 허락 창은 버튼 누를 때 바로 띄움
@@ -2183,7 +2344,7 @@
       return '<div class="hitem" data-id="' + x.id + '">' +
         (vid ? '<img src="https://i.ytimg.com/vi/' + vid + '/mqdefault.jpg" alt="" onerror="this.style.visibility=\'hidden\'">' : '<div class="noimg">🎬</div>') +
         '<div class="hbody"><div class="htitle">' + esc(x.title || '(제목 없음)') + '</div>' +
-        '<div class="hmeta">' + esc(fmtDate(x.at)) + (x.pdfSaved ? ' · 📄 PDF 있음' : ' · PDF 아직 안 만듦') + '</div>' +
+        '<div class="hmeta">' + (x.tab === 'med' ? '🩺 ' : x.tab === 'econ' ? '💰 ' : '') + esc(fmtDate(x.at)) + (x.pdfSaved ? ' · 📄 PDF 있음' : ' · PDF 아직 안 만듦') + '</div>' +
         '<div class="hone">' + esc(x.oneLine) + '</div></div>' +
         '<button type="button" class="hdel" data-del="' + x.id + '" aria-label="삭제">🗑</button></div>';
     }).join('') : '<p class="muted" style="text-align:center">' + (q ? '찾는 기록이 없어요 🔍' : '아직 기록이 없어요') + '</p>';
@@ -2428,7 +2589,7 @@
     $('installBar').style.display = 'none';
   });
   if (!IS_APP && /iphone|ipad|ipod/i.test(navigator.userAgent)) {
-    $('installText').textContent = '📲 아래 공유(□↑) → "홈 화면에 추가"로 앱처럼 쓸 수 있어요';
+    $('installText').textContent = '📲 사파리 ••• (또는 공유 □↑) → 공유 → "홈 화면에 추가"로 앱처럼 쓸 수 있어요';
     $('installBtn').style.display = 'none';
     $('installBar').style.display = 'flex';
   }
