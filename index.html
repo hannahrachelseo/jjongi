@@ -264,6 +264,10 @@
     .nrow:first-child { border-top: none; }
     .basis { font-size: 13px; font-weight: 700; color: #1a4fa0; background: #eef4ff; border-radius: 10px; padding: 7px 10px; margin: 8px 0; line-height: 1.5; }
     .basis span { font-weight: 500; }
+    .recap { background: #eef4ff; border: 1.5px solid #bcd3f5; border-radius: 14px; padding: 8px 12px; margin: 12px 0; }
+    .preview .recap h3 { border-top: none; padding-top: 0; margin-top: 4px; color: #1a4fa0; }
+    .recap li { font-weight: 700; }
+    .srcTag { display: inline-block; font-size: 10.5px; font-weight: 800; border-radius: 5px; padding: 0 5px; margin-right: 4px; background: #dbe7fb; color: #1a4fa0; vertical-align: 1px; }
     .preview:not(.showq) .core .quote, .preview:not(.showq) .fold .quote { display: none; }
     .preview:not(.showq) .core .quote.qno, .preview:not(.showq) .fold .quote.qno { display: block; }
   </style>
@@ -2012,10 +2016,27 @@
       preds.map(p => '<li>' + (p.target ? '<b>[' + esc(p.target) + ']</b> ' : '') + hl(p.claim) + (p.by ? ' <span class="muted">(기한: ' + esc(p.by) + ')</span>' : '') +
         evLink(p.t, url) + qHtml(p) + '</li>').join('') + '</ul>';
   }
+  // 📌 영상이 직접 정리한 핵심 / 📺 화면에만 나온 내용 / 🔤 용어 바로잡기
+  function recapHtml(s, url) {
+    const rc = arr(s.recap);
+    if (!rc.length) return '';
+    return '<div class="recap"><h3>📌 영상이 직접 정리한 핵심 <span class="cnt2">' + rc.length + '개</span></h3>' +
+      '<p class="muted">영상 속 "핵심 정리" 화면·말을 그대로 옮겼어요. 아래 핵심에도 모두 들어가도록 대조했어요.</p><ul>' +
+      rc.map(x => '<li><span class="srcTag">' + (x.src === '화면' ? '화면' : '말') + '</span>' + hl(x.text) + evLink(x.t, url) + '</li>').join('') + '</ul></div>';
+  }
+  function extraFolds(s, url) {
+    let h = '';
+    if (arr(s.screenFacts).length) h += foldHtml('📺 화면에만 나온 내용', s.screenFacts.length + '개',
+      s.screenFacts.map(x => '<div class="nrow">' + hl(x.text) + evLink(x.t, url) + '</div>').join(''));
+    if (arr(s.terms).length) h += foldHtml('🔤 용어 바로잡기 (들린 말 → 바른 용어)', s.terms.length + '개',
+      s.terms.map(x => '<div class="nrow"><span class="muted">' + esc(x.heard) + '</span> → <b>' + esc(x.term) + '</b></div>').join(''));
+    return h;
+  }
   function medHtml(s, url) {
     let h = '<h3>🧭 전체 흐름 요약</h3>';
     if (s.overview) h += '<p class="one">' + hl(s.overview) + '</p>';
     if (arr(s.flow).length) h += '<div class="flowl">' + s.flow.map((f, i) => '<div class="fr"><i>' + (i + 1) + '</i><span>' + hl(f.step) + '</span>' + rangeLink(f.start, f.end, url) + '</div>').join('') + '</div>';
+    h += recapHtml(s, url);
     if (arr(s.core).length) h += '<h3>✅ 핵심 포인트 <span class="cnt2">' + s.core.length + '개</span></h3>' + QTOGGLE + coreHtml(s.core, url, false);
     if (arr(s.warnings).length) h += '<div class="warnbox"><h3>⚠️ 주의할 점</h3><ul>' + s.warnings.map(w => '<li>' + hl(w.text) + rangeLink(w.start, w.end, url) + qHtml(w) + '</li>').join('') + '</ul></div>';
     if (arr(s.scenes).length) {
@@ -2031,15 +2052,18 @@
     if (arr(s.sections).length) h += sectionsFold(s.sections, url);
     if (arr(s.glossary).length) h += foldHtml('📖 용어 풀이', s.glossary.length + '개',
       '<p class="muted">쫑이가 붙인 일반적인 뜻풀이예요 (영상 내용 아님)</p>' + s.glossary.map(g => '<div class="nrow"><b>' + hl(g.term) + '</b> — ' + hl(g.explanation) + '</div>').join(''));
+    h += extraFolds(s, url);
     return h;
   }
   function econHtml(s, url) {
     let h = '<div class="basis">📅 영상 속 기준 시점: ' + (s.basis ? hl(s.basis) : '영상에서 말하지 않음') + (s.published ? ' · 업로드 ' + esc(s.published) : '') +
       '<br><span>경제 정보는 시간이 지나면 달라져요. 기준 시점을 꼭 확인하세요.</span></div>';
+    h += recapHtml(s, url);
     if (arr(s.core).length) h += '<h3>✨ 핵심 <span class="cnt2">' + s.core.length + '개</span></h3>' +
       '<div class="legend"><span class="kind kf">사실</span>이미 일어난 일·발표된 숫자 &nbsp;<span class="kind kp">전망</span>앞으로의 예측 &nbsp;<span class="kind ko">의견</span>말한 사람의 주장</div>' +
       QTOGGLE + coreHtml(s.core, url, true);
     if (arr(s.sections).length) h += sectionsFold(s.sections, url);
+    h += extraFolds(s, url);
     const inv = investHtml(s.invest, url, '💰 투자 의견 · 종목 추천');
     const pr = predsHtml(s.predictions, url);
     h += inv + pr;
