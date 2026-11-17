@@ -800,6 +800,17 @@
     });
   }
 
+  // 🩹 앱 밖에 있을 때 보낸 요청은 휴대폰이 얼려 둘 수 있음 → 앱으로 돌아오는 순간 그 요청은 버리고 새로 물어봄
+  function untilBack(p) {
+    if (!document.hidden) return p;
+    return new Promise((res, rej) => {
+      const h = () => { if (!document.hidden) { document.removeEventListener('visibilitychange', h); rej(new Error('BACK')); } };
+      document.addEventListener('visibilitychange', h);
+      p.then(v => { document.removeEventListener('visibilitychange', h); res(v); },
+             e => { document.removeEventListener('visibilitychange', h); rej(e); });
+    });
+  }
+
   function waitVisible() {
     if (!document.hidden) return Promise.resolve();
     return new Promise(res => {
@@ -836,6 +847,10 @@
   }
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden && jobRunning) keepAwake(true);   // 돌아오면 다시 켜두기
+    // 🩹 알림 눌러서 돌아왔는데 아까 연결이 끊겨 멈춰 있던 경우 → 맡겨 둔 일 자동으로 이어서 결과 가져오기
+    if (!document.hidden && !jobRunning && API_KEY) {
+      setTimeout(() => { if (!jobRunning && !document.hidden) { const j = jobLoad(); if (j && j.jobId) onGo(j); } }, 300);
+    }
     if (!document.hidden && !jobRunning) document.title = '대신봐쫑';
   });
 
@@ -1746,6 +1761,7 @@
         } catch (e) { resolve(null); }
       };
       img.onerror = () => resolve(null);
+      setTimeout(() => resolve(null), 6000);   // 🩹 그림 한 장이 안 그려져도 6초 뒤엔 넘어감 (결과가 안 뜨던 원인)
       img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(art.svg);
     });
   }
@@ -1753,17 +1769,25 @@
   // 모든 그림 만들기: 화면용 svg + PDF용 png
   async function buildArt(s) {
     const jobs = [];
-    const add = (b, art) => { if (!art) return; b._svg = art.svg; jobs.push(svgToPng(art).then(p => { if (p) b.png = p; })); };
+    // 🩹 그림 하나가 오류 나도 나머지 결과는 그대로 (예전엔 그림 하나 때문에 결과 전체가 안 떴음)
+    const add = (b, make) => {
+      try {
+        const art = make();
+        if (!art) return;
+        b._svg = art.svg;
+        jobs.push(svgToPng(art).then(p => { if (p) b.png = p; }).catch(() => {}));
+      } catch (e) {}
+    };
     if (s.mode !== 'text') {
-      s.illustrations.forEach(b => add(b, drawBlock(b, false)));
-      s.videoVisuals.forEach(b => add(b, drawBlock(b, true)));
-      arr(s.core).forEach(c => { if (c && c.visual) add(c.visual, drawBlock(c.visual, c.visual.src !== '정리')); });
+      arr(s.illustrations).forEach(b => add(b, () => drawBlock(b, false)));
+      arr(s.videoVisuals).forEach(b => add(b, () => drawBlock(b, true)));
+      arr(s.core).forEach(c => { if (c && c.visual) add(c.visual, () => drawBlock(c.visual, c.visual.src !== '정리')); });
     }
     if (s.mode === 'visual' && !s.tab) {
-      if (s.keyTakeaways.length) { s.pointsBlock = { type: 'points' }; add(s.pointsBlock, drawPoints(s.keyTakeaways.map(k => k.text), '')); }
-      if (s.sections.length) { s.timelineBlock = { type: 'timeline' }; add(s.timelineBlock, drawTimeline(s.sections, '')); }
+      if (arr(s.keyTakeaways).length) { s.pointsBlock = { type: 'points' }; add(s.pointsBlock, () => drawPoints(s.keyTakeaways.map(k => k.text), '')); }
+      if (arr(s.sections).length) { s.timelineBlock = { type: 'timeline' }; add(s.timelineBlock, () => drawTimeline(s.sections, '')); }
     }
-    await Promise.all(jobs);
+    await Promise.race([Promise.all(jobs), sleep(10000)]);   // 아무리 늦어도 10초 안에 결과 보여주기
   }
 
   // 서버로 보낼 때는 화면용 svg는 빼고
@@ -1780,7 +1804,11 @@
     return h;
   }
 
+  // 🩹 그림 하나가 깨져도 그 그림만 빼고 나머지 결과는 보여줌
   function blockHtml(b, videoUrl, fromVideo) {
+    try { return blockHtmlRaw(b, videoUrl, fromVideo); } catch (e) { return ''; }
+  }
+  function blockHtmlRaw(b, videoUrl, fromVideo) {
     let h = '<div class="vis">';
     if (b._svg) {
       h += '<div class="art">' + b._svg + '</div>';
@@ -2255,6 +2283,7 @@
       if (resume && resume.jobId) {
         JOB = resume;
         setStatus('쫑이가 서버에서 계속 보고 있었어요! 진행 상황 가져오는 중 🐾', false, true);
+        try { $('statusCard').scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (se) {}
       } else {
         const id = videoIdOf($('url').value);
         if (!id) throw new Error('NOLINK');
@@ -2280,11 +2309,12 @@
       let r, fails = 0;
       for (;;) {
         try {
-          r = await serverOnce('getJob', 30000, [JOB.jobId, PW]);
+          r = await untilBack(serverOnce('getJob', 30000, [JOB.jobId, PW]));
           fails = 0;
         } catch (e) {
           // 다른 앱 갔다 오거나 인터넷이 잠깐 끊긴 것 → 포기하지 않고 다시 물어보기 (쫑이는 서버에서 계속 일하는 중)
           if (/PASSWORD/.test((e && e.message) || '')) throw e;
+          if ((e && e.message) === 'BACK') { fails = 0; continue; }   // 방금 돌아옴 → 바로 다시 물어보기
           fails++;
           if (document.hidden) await waitVisible();
           updateMsg('다시 연결하는 중… 🔄\n(괜찮아요! 쫑이는 서버에서 계속 보고 있어요)');
@@ -2303,20 +2333,33 @@
       }
 
       const summary = r.summary;
+      if (!summary || typeof summary !== 'object') throw new Error('SERVER:결과가 비어 있어요. 다시 요약해 주세요.');
       rolesDone(); clonesMerge();
+      const histId = histAdd(summary, r.videoUrl, r.pdf || null);   // 📚 기록에 먼저 저장 (화면에 못 띄워도 기록에서 볼 수 있게)
       if (summary.mode !== 'text') {
+        if (document.hidden) await waitVisible();   // 🩹 앱 밖에서는 그림이 안 그려져 멈출 수 있음 → 돌아오면 그림
         updateMsg('쫑이들 합체! 크레파스로 그림 그리는 중 🖍️');
         await buildArt(summary);
       }
       clearInterval(timer);
-      const histId = histAdd(summary, r.videoUrl, r.pdf || null);   // 📚 기록에 자동 저장
+      try {
+        renderResult(summary, r.pdf || null, r.videoUrl, histId);
+      } catch (re) {
+        // 🩹 화면 그리기 오류 → 그림 없이 한 번 더
+        try { summary.mode = 'text'; renderResult(summary, r.pdf || null, r.videoUrl, histId); }
+        catch (re2) { jobClear(); throw new Error('SHOWFAIL:' + ((re2 && re2.message) || re2)); }
+      }
       jobClear();
-      renderResult(summary, r.pdf || null, r.videoUrl, histId);
-      notifyDone(true, (summary.title ? '「' + summary.title + '」 ' : '') + '결론 나왔어요. 눌러서 확인하세요!');
+      try { $('result').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (se) {}   // 결과가 아래쪽에 떠서 못 보는 일 없게
+      if (document.hidden) notifyDone(true, (summary.title ? '「' + summary.title + '」 ' : '') + '결론 나왔어요. 눌러서 확인하세요!');
+      else document.title = '✅ 쫑이가 다 봤어요!';
     } catch (e) {
       clearClones();
       const m = (e && e.message) || String(e);
-      if (m === 'NOLINK') {
+      if (m.indexOf('SHOWFAIL:') === 0) {
+        setStatus('결과는 받았는데 화면에 띄우다 문제가 생겼어요 🥲\n아래 "📚 지금까지 요약한 기록"에 저장해 뒀으니 거기서 열어 보세요.\n(한나T에게 알려줄 내용: ' + m.slice(9) + ')', true);
+        refreshHistButton();
+      } else if (m === 'NOLINK') {
         setStatus('음… 이건 유튜브 링크가 아닌 것 같은데? 🤨\n유튜브 앱에서 공유 → 링크 복사 해서 붙여 넣어 줘.', true);
       } else if (m.indexOf('SERVER:') === 0) {
         jobClear();
